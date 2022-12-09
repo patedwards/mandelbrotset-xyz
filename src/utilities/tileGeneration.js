@@ -1,7 +1,7 @@
-import {evaluateMandelbrot} from "./math";
-import { generateColor } from './styling';
+import {evaluateMandelbrot, gradientFunctions} from "./math";
+import { getColor } from './styling';
 
-export function makeMandelbrot(x, y, zoom, scale, maxIterations) {
+export function makeMandelbrot(x, y, zoom, scale, maxIterations, colors, gradientFunction) {
     // Calculate values to make navigation easier
     const zF = 2 ** zoom;
     const xFrom = x / zF;
@@ -13,15 +13,16 @@ export function makeMandelbrot(x, y, zoom, scale, maxIterations) {
   
     const xs = (xTo - xFrom) / width;
     const ys = (yTo - yFrom) / height;
-  
+    console.log("gradientFunction!", gradientFunction)
     const image = [];
     for (let j = 0; j < 256; j++) {
       let row = [];
       for (let i = 0; i < 256; i++) {
         let x0 = i * xs + xFrom;
         let y0 = j * ys + yFrom;
-        let value = evaluateMandelbrot(x0, y0, maxIterations)/scale;
-        let pixel = generateColor(value);
+        let [x, y, iterations] = evaluateMandelbrot(x0, y0, maxIterations);
+        let value = iterations === -1? 0 : gradientFunctions[gradientFunction](x, y, iterations, maxIterations)/scale
+        let pixel = getColor(value, colors.start, colors.middle, colors.end);
         row.push(pixel);
       }
       image.push(row);

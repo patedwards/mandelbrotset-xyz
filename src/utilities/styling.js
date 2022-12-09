@@ -1,27 +1,21 @@
-export function generateColor(value) {
-    // Make sure value is in range [0, 1]
-    //value = Math.max(0, Math.min(1, value));
-    // Map value to color using a spectral ramp
-    let r, g, b;
-    if (value < 0.25) {
-      r = 0;
-      g = 4 * value;
-      b = 1;
-    } else if (value < 0.5) {
-      r = 0;
-      g = 1;
-      b = 1 - 4 * (value - 0.25);
-    } else if (value < 0.75) {
-      r = 4 * (value - 0.5);
-      g = 1;
-      b = 0;
-    } else {
-      r = 1;
-      g = 1 - 4 * (value - 0.75);
-      b = 0;
-    }
-    // Return color as hexadecimal string
-    //return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
-    return [r * 255, g * 255, b * 255];
+export function getColor(value, startColor, middleColor, endColor) {
+  if (value <= 0.5) {
+    // Interpolate between startColor and middleColor
+    const t = value * 2;
+    const color = interpolateColor(startColor, middleColor, t);
+    if (color[0] < 10 && color[10] < 1 && color[2] < 10) {console.log("black", value)}
+    return color
+  } else {
+    // Interpolate between middleColor and endColor
+    const t = (value - 0.5) * 2;
+    return interpolateColor(middleColor, endColor, t);
   }
-  
+}
+
+// Helper function for interpolating between two colors
+function interpolateColor(startColor, endColor, t) {
+  const r = startColor.r + (endColor.r - startColor.r) * t;
+  const g = startColor.g + (endColor.g - startColor.g) * t;
+  const b = startColor.b + (endColor.b - startColor.b) * t;
+  return [r, g, b];
+}

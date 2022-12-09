@@ -4,8 +4,9 @@ import { makeMandelbrot } from "../utilities/tileGeneration";
 import { TileLayer } from "@deck.gl/geo-layers";
 import DeckGL from "@deck.gl/react";
 
-const createTileLayer = ({ scale, maxIterations }) => {
-  console.log("createTileLayer", scale, maxIterations);
+
+const createTileLayer = ({ scale, maxIterations, colors, gradientFunction }) => {
+  console.log("createTileLayer", scale, maxIterations, gradientFunction);
 
   return new TileLayer({
     // https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#Tile_servers
@@ -13,11 +14,11 @@ const createTileLayer = ({ scale, maxIterations }) => {
     maxZoom: Infinity,
     tileSize: 256,
     updateTriggers: {
-        getTileData: {scale, maxIterations}
+        getTileData: {scale, maxIterations, colors, gradientFunction}
       },
     getTileData: ({ x, y, z }) => {
       console.log("here", scale, maxIterations);
-      const pixels = makeMandelbrot(x, y, z, scale, maxIterations);
+      const pixels = makeMandelbrot(x, y, z, scale, maxIterations, colors, gradientFunction);
       // Create a canvas element
       const canvas = document.createElement("canvas");
       // Set the dimensions of the canvas
@@ -62,19 +63,19 @@ const createTileLayer = ({ scale, maxIterations }) => {
     }
   });
 };
-const Map = ({ scale, maxIterations }) => {
+const Map = ({ scale, maxIterations, colors, gradientFunction }) => {
   const [viewState, setViewState] = useState({
     longitude: 0,
     latitude: 0,
     zoom: 0
   });
 
-  const [layer, setLayer] = useState(createTileLayer({ scale, maxIterations }));
+  const [layer, setLayer] = useState(createTileLayer({ scale, maxIterations, colors, gradientFunction }));
 
   useEffect(() => {
     console.log("Scale", scale);
-    setLayer(createTileLayer({ scale, maxIterations }));
-  }, [scale, maxIterations]);
+    setLayer(createTileLayer({ scale, maxIterations, colors, gradientFunction }));
+  }, [scale, maxIterations, colors, gradientFunction]);
 
   console.log(scale, maxIterations);
 
