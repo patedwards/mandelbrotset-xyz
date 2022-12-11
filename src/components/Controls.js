@@ -8,48 +8,63 @@ import Selector from "./Selector";
 
 const gradientFunctions = [
   {
-    label: "Standard", name: "standard"
+    label: "Standard",
+    name: "standard"
   },
   {
-      label: "Pillar maker", name: "pillarMaker"
+    label: "Pillar maker",
+    name: "pillarMaker"
   }
 ];
 
-export default ({
+const controls = ({
   scale,
   maxIterations,
   setScale,
   setMaxIterations,
   colors,
   setColors,
-  setGradientFunction
+  setGradientFunction,
+  stylebarOpen
 }) => {
   return (
     <div>
+      {stylebarOpen? 
       <Box
         sx={{
           zIndex: 999999,
           position: "absolute",
-          left: 32,
-          top: 32,
+          right: 16,
+          width: 228,
+          top:72 
         }}
       >
-        <Paper sx={{}}>
-          <Stack>
-            <TextField
-              value={scale}
-              onChange={event => setScale(event.target.value)}
-            />
-            <TextField
-              value={maxIterations}
-              onChange={event => setMaxIterations(event.target.value)}
-            />
+        <Paper sx={{ padding: 1, borderRadius: 3 }}>
+          <Stack spacing={1} alignItems="left">
+            <Stack direction="row">
+              <TextField
+                type="number"
+                size="small"
+                value={scale}
+                onChange={event => setScale(event.target.value)}
+              />
+              <TextField
+                type="number"
+                size="small"
+                value={maxIterations}
+                onChange={event => setMaxIterations(event.target.value)}
+              />
+            </Stack>
             <ColorToggleButton {...{ colors, setColors }} />
-            <Selector items={gradientFunctions} handleSelection={item => setGradientFunction(item.name)}/>
+            <Selector
+              items={gradientFunctions}
+              handleSelection={item => setGradientFunction(item.name)}
+            />
           </Stack>
         </Paper>
-      </Box>
-      <Drawer anchor={"right"} open={true} variant="permanent"></Drawer>
+      </Box> : null}
     </div>
   );
 };
+
+export default controls;

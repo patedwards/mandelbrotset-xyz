@@ -1,59 +1,80 @@
 import * as React from "react";
-import ToggleButton from "@mui/material/ToggleButton";
-import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
+import Button from "@mui/material/Button";
+import ButtonGroup from "@mui/material/ButtonGroup";
 import { GithubPicker } from "react-color";
 import Stack from "@mui/material/Stack";
+import { getContrastingTextColor } from "../utilities/styling";
 
 export default function ColorToggleButton({ colors, setColors }) {
   const [alignment, setAlignment] = React.useState("start");
   const [chosen, setChosen] = React.useState("start");
 
   const handleChange = (event, newAlignment) => {
-    console.log(event);
-    setAlignment(newAlignment);
     setChosen(event.target.value);
   };
 
-  React.useEffect(() => {
-    console.log(chosen, colors[[chosen]]);
-  }, [chosen]);
+  React.useEffect(() => {}, [chosen, colors]);
 
   const handleColorChange = color => {
     console.log(color, colors[[chosen]]);
-    setColors({ ...colors, [chosen]: {...color.rgb, hex: color.hex} });
+    setColors({ ...colors, [chosen]: { ...color.rgb, hex: color.hex } });
   };
 
-  console.log(colors[["start"]].hex)
-
   return (
-    <Stack>
-      <ToggleButtonGroup
+    <Stack spacing={1}>
+      <ButtonGroup
         color="primary"
-        value={alignment}
         exclusive
         onChange={handleChange}
         aria-label="Platform"
-        background={colors[[chosen]].hex}
+        sx={{
+          background: "#ffffff0f",
+          color: "#00000000",
+          width: 72 * 3
+        }}
       >
-        <ToggleButton
+        <Button
           value="start"
+          size="small"
+          onClick={handleChange}
           sx={{
-            background: colors[["start"]].hex
+            background: colors[["start"]].hex,
+            color: getContrastingTextColor(colors[["start"]].hex),
+            width: 72
           }}
         >
           Start
-        </ToggleButton>
-        <ToggleButton value="middle" sx={{
-            background: colors[["middle"]].hex
-          }}>Middle</ToggleButton>
-        <ToggleButton value="end" sx={{
-            background: colors[["end"]].hex
-          }}>End</ToggleButton>
-      </ToggleButtonGroup>
+        </Button>
+        <Button
+          value="middle"
+          size="small"
+          onClick={handleChange}
+          sx={{
+            background: colors[["middle"]].hex,
+            color: getContrastingTextColor(colors[["middle"]].hex),
+            width: 72
+          }}
+        >
+          Middle
+        </Button>
+        <Button
+          value="end"
+          size="small"
+          onClick={handleChange}
+          sx={{
+            background: colors[["end"]].hex,
+            color: getContrastingTextColor(colors[["end"]].hex),
+            width: 72
+          }}
+        >
+          End
+        </Button>
+      </ButtonGroup>
       <GithubPicker
         triangle="hide"
         color={colors[[chosen]]}
         onChange={handleColorChange}
+        width={202}
       />
     </Stack>
   );
