@@ -67,17 +67,20 @@ export const captureImage = async (viewState, scale,
         gradientFunction
     })
 
-    console.log("viewState", viewState.viewState)
+    console.log("viewState", viewState)
+    const path = uuidv4() + ".png"
     const deck = new Deck({
-        initialViewState: viewState.viewState, layers: [layer],
+        initialViewState: viewState, layers: [layer],
         onAfterRender: () => {
             console.log("here...")
-            window.localStorage.setItem("screenshot", deck.canvas.toDataURL())
+            window.localStorage.setItem(path, deck.canvas.toDataURL())
         }
     });
 
     const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay))
-    await sleep(1000)
+    await sleep(2000)
+    deck.finalize()
+    return path
 }
 
 export const createTileLayer = ({

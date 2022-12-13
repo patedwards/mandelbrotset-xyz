@@ -18,7 +18,7 @@ const Map = ({ scale, maxIterations, colors, gradientFunction, setViewState }) =
         zoom: 0.592703456010508,
         maxZoom: Infinity
       }}
-      onViewStateChange={setViewState}
+      onViewStateChange={({viewState}) => setViewState(viewState)}
       layers={[layer]}
     />
   );
