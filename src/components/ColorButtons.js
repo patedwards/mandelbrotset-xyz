@@ -6,7 +6,6 @@ import Stack from "@mui/material/Stack";
 import { getContrastingTextColor } from "../utilities/styling";
 
 export default function ColorToggleButton({ colors, setColors }) {
-  const [alignment, setAlignment] = React.useState("start");
   const [chosen, setChosen] = React.useState("start");
 
   const handleChange = (event, newAlignment) => {
