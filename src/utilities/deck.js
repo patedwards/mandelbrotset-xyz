@@ -55,10 +55,12 @@ const convertDataToPixels = (data, imageData, pixelTransform) => {
     return imageData;
 };
 
-export const captureImage = async (viewState, scale,
+export const captureImage = async ({viewState, scale,
     maxIterations,
     colors,
-    gradientFunction) => {
+    gradientFunction, ratio}) => {
+        
+    console.log(ratio)
 
     const layer = createTileLayer({
         scale,
@@ -67,12 +69,12 @@ export const captureImage = async (viewState, scale,
         gradientFunction
     })
 
-    console.log("viewState", viewState)
     const path = uuidv4() + ".png"
+    console.log("viewState", viewState)
     const deck = new Deck({
-        initialViewState: viewState, layers: [layer],
-        onAfterRender: () => {
-            console.log("here...")
+        initialViewState: {...viewState}, layers: [layer],
+        useDevicePixels: ratio,
+        onAfterRender: async () => {
             window.localStorage.setItem(path, deck.canvas.toDataURL())
         }
     });
@@ -98,6 +100,7 @@ export const createTileLayer = ({
             getTileData: { scale, maxIterations, colors, gradientFunction }
         },
         getTileData: ({ x, y, z }) => {
+            console.log("x y", x, y)
             const data = makeMandelbrot(
                 x,
                 y,

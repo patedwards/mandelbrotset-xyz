@@ -5,7 +5,7 @@ import Stack from "@mui/material/Stack";
 
 
 const controls = ({
-    setZOpen, z, setZ
+    setZOpen, z, handleSetZ
 }) => {
   return (
     <div>
@@ -14,25 +14,25 @@ const controls = ({
         sx={{
           zIndex: 999999,
           position: "absolute",
-          right: 16,
+          left: 0,
           width: 228,
-          bottom:72 
+          top:64 
         }}
       >
-        <Paper sx={{ padding: 1, borderRadius: 3 }}>
+        <Paper sx={{ padding: 1, borderRadius: 0 }}>
           <Stack spacing={1} alignItems="left">
             <Stack direction="row">
               <TextField
                 type="number"
                 size="small"
                 value={z.x}
-                onChange={event => setZ({...z, x: event.target.value})}
+                onChange={event => handleSetZ({...z, x: event.target.value})}
               />
               <TextField
                 type="number"
                 size="small"
                 value={z.y}
-                onChange={event => setZ({...z, y: event.target.value})}
+                onChange={event => handleSetZ({...z, y: event.target.value})}
               />
             </Stack>
           </Stack>

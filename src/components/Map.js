@@ -1,7 +1,7 @@
 import DeckGL from "@deck.gl/react";
 import { createTileLayer } from "../utilities/deck";
 
-const Map = ({ scale, maxIterations, colors, gradientFunction, setViewState }) => {
+const Map = ({ scale, maxIterations, colors, gradientFunction, initialViewState, setViewState }) => {
   const layer = createTileLayer({
     scale,
     maxIterations,
@@ -12,12 +12,7 @@ const Map = ({ scale, maxIterations, colors, gradientFunction, setViewState }) =
   return (
     <DeckGL
       controller={true}
-      initialViewState={{
-        latitude: 23.793501867101057,
-        longitude: -58.11059317562626,
-        zoom: 0.592703456010508,
-        maxZoom: Infinity
-      }}
+      initialViewState={initialViewState}
       onViewStateChange={({viewState}) => setViewState(viewState)}
       layers={[layer]}
     />

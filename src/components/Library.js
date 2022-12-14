@@ -1,10 +1,11 @@
-import * as React from 'react';
+import { useEffect, useState } from 'react';
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import Grid from '@mui/material/Unstable_Grid2';
 import LibraryCard from "./LibraryCard";
 import { styled } from '@mui/material/styles';
-
+import Tabs from '@mui/material/Tabs';
+import Tab from '@mui/material/Tab';
 
 const style = {
   position: 'absolute',
@@ -16,7 +17,7 @@ const style = {
   border: '2px solid #000',
   boxShadow: 24,
   p: 4,
-  maxHeight: '60vh', overflow: 'auto'
+  height: '60vh', overflow: 'auto'
 };
 
 const Item = styled(Box)(({ theme }) => ({
@@ -27,8 +28,19 @@ const Item = styled(Box)(({ theme }) => ({
   color: theme.palette.text.secondary,
 }));
 
-export default function BasicModal({ libraryOpen, setLibraryOpen, views }) {
+export default function Library({ libraryOpen, setLibraryOpen, includedViews, savedViews, setViewState }) {
+  const [value, setValue] = useState(0);
+  const [views, setViews] = useState(includedViews);
   const handleClose = () => setLibraryOpen(false);
+
+  useEffect(() => {
+    setViews(value === 0 ? includedViews : savedViews)
+  }, [value, includedViews, savedViews])
+
+  const handleChange = (event, newValue) => {
+    console.log(event, newValue)
+    setValue(newValue);
+  };
 
   return (
     <Modal
@@ -37,10 +49,15 @@ export default function BasicModal({ libraryOpen, setLibraryOpen, views }) {
       aria-labelledby="modal-modal-title"
       aria-describedby="modal-modal-description"
     >
+
       <Box sx={style}>
+        <Tabs value={value} onChange={handleChange} aria-label="basic tabs example">
+          <Tab label="Library" />
+          <Tab label="My places" />
+        </Tabs>
         <Grid container rowSpacing={2} columnSpacing={2}>
           {views.map(view => <Grid key={view.imgPath}>
-            <Item><LibraryCard {...view} /></Item>
+            <Item><LibraryCard {...{...view, setViewState}} /></Item>
           </Grid>)}
         </Grid>
       </Box>
