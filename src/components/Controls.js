@@ -31,7 +31,7 @@ const controls = ({
       {stylebarOpen? 
       <Box
         sx={{
-          zIndex: 999999,
+          zIndex: 999,
           position: "absolute",
           right: 16,
           width: 228,

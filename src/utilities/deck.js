@@ -60,7 +60,6 @@ export const captureImage = async ({viewState, scale,
     colors,
     gradientFunction, ratio}) => {
         
-    console.log(ratio)
 
     const layer = createTileLayer({
         scale,
@@ -70,7 +69,6 @@ export const captureImage = async ({viewState, scale,
     })
 
     const path = uuidv4() + ".png"
-    console.log("viewState", viewState)
     const deck = new Deck({
         initialViewState: {...viewState}, layers: [layer],
         useDevicePixels: ratio,
@@ -100,7 +98,6 @@ export const createTileLayer = ({
             getTileData: { scale, maxIterations, colors, gradientFunction }
         },
         getTileData: ({ x, y, z }) => {
-            console.log("x y", x, y)
             const data = makeMandelbrot(
                 x,
                 y,

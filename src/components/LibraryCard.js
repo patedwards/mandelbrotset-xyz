@@ -7,11 +7,11 @@ import CardMedia from '@mui/material/CardMedia';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 
-export default function MediaCard({ imgPath, viewState, setViewState }) {
+export default function MediaCard({ view, handleLoadView }) {
 
-  const img = window.localStorage.getItem(imgPath)
+  const img = window.localStorage.getItem(view.imgPath)
   return (
-    <CardActionArea  onClick={() => {console.log("viewState", viewState); setViewState(viewState)}}>
+    <CardActionArea onClick={() => { handleLoadView(view) }}>
       <Card sx={{ width: 320, height: 320 }}>
         <CardMedia
           component="img"

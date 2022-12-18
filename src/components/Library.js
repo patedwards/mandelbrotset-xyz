@@ -28,17 +28,16 @@ const Item = styled(Box)(({ theme }) => ({
   color: theme.palette.text.secondary,
 }));
 
-export default function Library({ libraryOpen, setLibraryOpen, includedViews, savedViews, setViewState }) {
+export default function Library({ libraryOpen, setLibraryOpen, includedViews, savedViews, handleLoadView }) {
   const [value, setValue] = useState(0);
   const [views, setViews] = useState(includedViews);
   const handleClose = () => setLibraryOpen(false);
 
   useEffect(() => {
-    setViews(value === 0 ? includedViews : savedViews)
+    setViews(value === 0 ? savedViews : includedViews)
   }, [value, includedViews, savedViews])
 
   const handleChange = (event, newValue) => {
-    console.log(event, newValue)
     setValue(newValue);
   };
 
@@ -51,13 +50,13 @@ export default function Library({ libraryOpen, setLibraryOpen, includedViews, sa
     >
 
       <Box sx={style}>
-        <Tabs value={value} onChange={handleChange} aria-label="basic tabs example">
-          <Tab label="Library" />
+        <Tabs sx={{position: "relative", top: 0}} value={value} onChange={handleChange} aria-label="basic tabs example">
           <Tab label="My places" />
+          <Tab label="Library" />
         </Tabs>
         <Grid container rowSpacing={2} columnSpacing={2}>
           {views.map(view => <Grid key={view.imgPath}>
-            <Item><LibraryCard {...{...view, setViewState}} /></Item>
+            <Item><LibraryCard {...{view, handleLoadView}} /></Item>
           </Grid>)}
         </Grid>
       </Box>
