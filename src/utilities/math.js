@@ -18,10 +18,11 @@ export function evaluateMandelbrot(x0, y0, maxIterations) {
 }
 
 export const gradientFunctions = {
-  standard: (x, y, iteration) =>
+  standard: (x, y, iteration, maxIterations) => iteration/maxIterations, 
+  niceGradient: (x, y, iteration) =>
     1 - 0.01 * (iteration - Math.log2(Math.log2(x * x + y * y))),
   pillarMaker: (x, y, iteration, maxIterations) =>
-    1 - (iteration / maxIterations - Math.log2(Math.log2(x * x + y * y)))
+    1 -  (iteration / maxIterations - Math.log2(Math.log2(x * x + y * y)))
 };
 
 export const zToLatLon = z => {

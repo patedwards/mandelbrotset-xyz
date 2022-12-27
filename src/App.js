@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { v4 as uuidv4 } from "uuid";
+
 import { ThemeProvider } from "@mui/material/styles";
 import LibraryIcon from '@mui/icons-material/PhotoLibrary';
 import PaletteIcon from "@mui/icons-material/Palette";
@@ -22,98 +24,13 @@ import { zToLatLon, latLongToZ } from "./utilities/math"
 import { useLibraryLU } from "./hooks/library";
 
 const includedViews = [
-  {
-    "viewState": {
-      "width": 1139,
-      "height": 984,
-      "latitude": 68.67929264422192,
-      "longitude": -33.30643542160577,
-      "zoom": 13.561446015428118,
-      "bearing": 0,
-      "pitch": 0,
-      "altitude": 1.5,
-      "maxZoom": null,
-      "minZoom": 0,
-      "maxPitch": 60,
-      "minPitch": 0,
-      "position": [
-        0,
-        0,
-        0
-      ]
-    },
-    "imgPath": "8328f99b-2f5a-4c03-9774-b9b35351bb22.png",
-    "scale": "-1",
-    "colors": {
-      "start": {
-        "r": 252,
-        "g": 203,
-        "b": 0,
-        "a": 1,
-        "hex": "#fccb00"
-      },
-      "middle": {
-        "r": 219,
-        "g": 62,
-        "b": 0,
-        "hex": "#db3e00"
-      },
-      "end": {
-        "r": 83,
-        "g": 0,
-        "b": 235,
-        "hex": "#5300eb"
-      }
-    },
-    "maxIterations": "500",
-    "gradientFunction": "standard"
-  },
-  {
-    "viewState": {
-      "width": 1139,
-      "height": 984,
-      "latitude": 56.4955416501255,
-      "longitude": -40.09855778844566,
-      "zoom": 7.377379220556012,
-      "bearing": 0,
-      "pitch": 0,
-      "altitude": 1.5,
-      "maxZoom": null,
-      "minZoom": 0,
-      "maxPitch": 60,
-      "minPitch": 0,
-      "position": [
-        0,
-        0,
-        0
-      ]
-    },
-    "imgPath": "21cef1a8-2b55-41b7-8f04-573c3a24eca9.png",
-    "scale": 1,
-    "colors": {
-      "start": {
-        "r": 35,
-        "g": 44,
-        "b": 51,
-        "hex": "#232C33"
-      },
-      "middle": {
-        "r": 219,
-        "g": 62,
-        "b": 0,
-        "hex": "#db3e00"
-      },
-      "end": {
-        "r": 83,
-        "g": 0,
-        "b": 235,
-        "hex": "#5300eb"
-      }
-    },
-    "maxIterations": 100,
-    "gradientFunction": "standard"
-  }
+
 ]
+
+const taskNames = {
+  coordinateSetter: "COORDINATE_SETTER",
+  styleSetter: "STYLE_SETTER"
+}
 
 
 /*
@@ -126,11 +43,12 @@ Todos:
 - curate a set of places in the set to zoom to, but also show their locations if they repeat
 - incrementing the maxIterations sends the tiles on for more processing rather than regenerating completely OR we store them locally for reading
 - Make the black toggleable (search for idea-1 in code)
+- Zoom in on self similarity by linking the scroll of zoom in to panning in the x-direction (https://en.wikipedia.org/wiki/Mandelbrot_set#Self-similarity)
+- Demonstrate some geometric properties through interactivity (https://en.wikipedia.org/wiki/Mandelbrot_set#Geometry)
 */
 
 function App() {
   // Parameters
-  const [scale, setScale] = useState(1);
   const [maxIterations, setMaxIterations] = useState(100);
   const [gradientFunction, setGradientFunction] = useState("standard");
   // TODO: move this config to defaults or "inital-settings.js" or something
@@ -152,39 +70,46 @@ function App() {
   const [showCoordinateSetter, setShowCoordinateSetter] = useState(false)
   const [stylebarOpen, setStylebarOpen] = useState(false)
   const [libraryOpen, setLibraryOpen] = useState(false)
+  const [activeTask, setActiveTask] = useState(null)
 
   // Meta-application state
-  const [savedViews, updateSavedViews] = useLibraryLU()
+  const [savedViews, updateSavedViews, removeItem] = useLibraryLU()
 
   // event handlers
   const handleScreenshot = async () => {
-    const imgPath = await captureImage({
-      viewState, scale,
+    const el = await captureImage({
+      viewState,
       maxIterations,
       colors,
-      gradientFunction, ratio: 1
+      gradientFunction, ratio: 4
     }
     )
-    const dataUrl = window.localStorage.getItem(imgPath); //canvas.toDataURL("image/png").replace("image/png", "image/octet-stream")
-    var a = document.createElement('a');
-    a.href = dataUrl;
-    a.download = "output.png";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    el.download = "output.png";
+    document.body.appendChild(el);
+    const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay))
+    await sleep(5000)
+    el.click();
+    document.body.removeChild(el);
 
   }
 
   const handleSaveView = async () => {
-    const imgPath = await captureImage({
-      viewState, ratio: 0.25, scale,
+    const el = await captureImage({
+      viewState, ratio: 0.2,
       maxIterations,
       colors,
       gradientFunction
     })
 
+    const imgPath = `${uuidv4()}.png`
+
+    const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay))
+    await sleep(5000)
+    window.localStorage.setItem(imgPath, el)
+
+
     const view = {
-      viewState, imgPath, scale, colors, maxIterations, gradientFunction
+      viewState, imgPath, colors, maxIterations, gradientFunction
     }
 
     updateSavedViews(view)
@@ -197,14 +122,13 @@ function App() {
     setColors(view.colors)
     setMaxIterations(view.maxIterations)
     setGradientFunction(view.gradientFunction)
-    setScale(view.scale)
   }
 
   // Available tools
   const tools = {
     xyToggle: {
       label: "Set coordinates",
-      onClick: () => setShowCoordinateSetter(!showCoordinateSetter),
+      onClick: () => setActiveTask(taskNames.coordinateSetter),
       icon: EditLocationIcon
     },
     libraryToggle: {
@@ -224,7 +148,7 @@ function App() {
     },
     styleToggle: {
       label: "style",
-      onClick: () => setStylebarOpen(!stylebarOpen),
+      onClick: () => setActiveTask(taskNames.styleSetter),
       icon: PaletteIcon
     }
   }
@@ -232,7 +156,8 @@ function App() {
 
   // Activity configuration
 
-  const appBarTools = [tools.xyToggle, tools.styleToggle, tools.libraryToggle, tools.saveToggle, tools.captureToggle]
+  const editTools = [tools.xyToggle, tools.styleToggle]
+  const shareSaveTools = [tools.libraryToggle, tools.saveToggle, tools.captureToggle]
 
   // TODO: put this in a State and use useEffect to update step size and initial value for max its based on Zoom value
   // TODO: make the setViewState work
@@ -247,9 +172,6 @@ function App() {
       {
         label: "Zoom", inputType: "number", initialValue: viewState.zoom, inputProps: { step: 1 }
       },
-      {
-        label: "Scale", inputType: "number", initialValue: scale, inputProps: { step: 1 }
-      },
       { label: "Number of iterations", initialValue: maxIterations, inputType: "number", inputProps: { step: 100 } }
     ]
   }
@@ -261,7 +183,6 @@ function App() {
       ...zToLatLon({ x: formState["X"], y: formState["Y"] }),
       zoom: formState["Zoom"],
     })
-    setScale(formState["Scale"])
     setMaxIterations(formState["Number of iterations"])
   }
 
@@ -284,16 +205,16 @@ function App() {
   //
   return (
     <div>
-      <TaskDrawer tools={appBarTools} />
-      <AppBar {...{ stylebarOpen, setStylebarOpen, z, zoom: viewState.zoom }} />
+      <TaskDrawer editTools={editTools} shareSaveTools={shareSaveTools} />
+      <AppBar />
       <Box sx={{ position: "absolute", top: 80, left: 80, width: 360 }}>
         <Stack spacing={2}>
-          <CoordinateSetter {...{ ...setZActivity, isActive: showCoordinateSetter, formSubmit: setZActivityFormSubmit }} />
-          <GradientStyler {...{ colors, setColors, isActive: stylebarOpen }} />
+          {activeTask === taskNames.coordinateSetter ? <CoordinateSetter {...{ ...setZActivity, isActive: showCoordinateSetter, formSubmit: setZActivityFormSubmit }} /> : null}
+          {activeTask === taskNames.styleSetter ? <GradientStyler {...{ colors, setColors, isActive: stylebarOpen, setGradientFunction }} /> : null}
         </Stack>
       </Box>
-      <Map {...{ scale, maxIterations, colors, gradientFunction, setViewState, initialViewState: viewState }} />
-      <Library {...{ libraryOpen, setLibraryOpen, savedViews, includedViews, handleLoadView }} />
+      <Map {...{ maxIterations, colors, gradientFunction, setViewState, initialViewState: viewState }} />
+      <Library {...{ libraryOpen, setLibraryOpen, savedViews, includedViews, handleLoadView, removeItem }} />
     </div>
   );
 }

@@ -7,7 +7,7 @@ import CardMedia from '@mui/material/CardMedia';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 
-export default function MediaCard({ view, handleLoadView }) {
+export default function MediaCard({ view, handleLoadView, removeItem }) {
 
   const img = window.localStorage.getItem(view.imgPath)
   return (
@@ -30,7 +30,7 @@ export default function MediaCard({ view, handleLoadView }) {
         </CardContent>
         <CardActions>
           <Button size="small">Share</Button>
-          <Button size="small">Learn More</Button>
+          <Button size="small" onClick={() => removeItem(view)}>Delete</Button>
         </CardActions>
       </Card>
     </CardActionArea>

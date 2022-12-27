@@ -1,9 +1,8 @@
 import DeckGL from "@deck.gl/react";
 import { createTileLayer } from "../utilities/deck";
 
-const Map = ({ scale, maxIterations, colors, gradientFunction, initialViewState, setViewState }) => {
+const Map = ({ maxIterations, colors, gradientFunction, initialViewState, setViewState }) => {
   const layer = createTileLayer({
-    scale,
     maxIterations,
     colors,
     gradientFunction

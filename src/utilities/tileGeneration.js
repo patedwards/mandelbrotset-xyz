@@ -1,6 +1,6 @@
 import {evaluateMandelbrot } from "./math";
 
-export function makeMandelbrot(x, y, zoom, scale, maxIterations, colors, gradientFunction) {
+export function makeMandelbrot(x, y, zoom, maxIterations, colors, gradientFunction) {
     // Calculate values to make navigation easier
     const zF = 2 ** zoom;
     const xFrom = x / zF;

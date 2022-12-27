@@ -4,7 +4,6 @@ import { makeMandelbrot } from "../utilities/tileGeneration";
 import { TileLayer } from "@deck.gl/geo-layers";
 import { getColor } from "../utilities/styling";
 import { gradientFunctions } from "../utilities/math";
-import { v4 as uuidv4 } from "uuid";
 
 const createTileImage = (width, height) => {
     // Create a canvas element
@@ -28,13 +27,11 @@ const mandelbrotPixelTransform = (
     maxIterations,
     gradientFunction,
     colors,
-    scale
 ) => {
     let value =
         iterations === -1
             ? 0
-            : gradientFunctions[gradientFunction](x, y, iterations, maxIterations) /
-            scale;
+            : gradientFunctions[gradientFunction](x, y, iterations, maxIterations);
     let pixel = getColor(value, colors.start, colors.middle, colors.end);
     return pixel;
 };
@@ -55,36 +52,34 @@ const convertDataToPixels = (data, imageData, pixelTransform) => {
     return imageData;
 };
 
-export const captureImage = async ({viewState, scale,
+export const captureImage = async ({ viewState,
     maxIterations,
     colors,
-    gradientFunction, ratio}) => {
-        
+    gradientFunction, ratio }) => {
+
 
     const layer = createTileLayer({
-        scale,
         maxIterations,
         colors,
         gradientFunction
     })
 
-    const path = uuidv4() + ".png"
+    var a = document.createElement('a');
     const deck = new Deck({
-        initialViewState: {...viewState}, layers: [layer],
+        initialViewState: { ...viewState }, width: viewState.width, height: viewState.height, layers: [layer],
         useDevicePixels: ratio,
         onAfterRender: async () => {
-            window.localStorage.setItem(path, deck.canvas.toDataURL())
+            a.href = deck.canvas.toDataURL()
         }
     });
 
     const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay))
-    await sleep(2000)
+    await sleep(5000)
     deck.finalize()
-    return path
+    return a
 }
 
 export const createTileLayer = ({
-    scale,
     maxIterations,
     colors,
     gradientFunction
@@ -95,14 +90,13 @@ export const createTileLayer = ({
         maxZoom: Infinity,
         tileSize: 256,
         updateTriggers: {
-            getTileData: { scale, maxIterations, colors, gradientFunction }
+            getTileData: { maxIterations, colors, gradientFunction }
         },
         getTileData: ({ x, y, z }) => {
             const data = makeMandelbrot(
                 x,
                 y,
                 z,
-                scale,
                 maxIterations,
                 colors,
                 gradientFunction
@@ -116,7 +110,6 @@ export const createTileLayer = ({
                     maxIterations,
                     gradientFunction,
                     colors,
-                    scale
                 )
             );
 

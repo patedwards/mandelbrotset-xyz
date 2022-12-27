@@ -28,7 +28,7 @@ const Item = styled(Box)(({ theme }) => ({
   color: theme.palette.text.secondary,
 }));
 
-export default function Library({ libraryOpen, setLibraryOpen, includedViews, savedViews, handleLoadView }) {
+export default function Library({ libraryOpen, setLibraryOpen, includedViews, savedViews, handleLoadView, removeItem }) {
   const [value, setValue] = useState(0);
   const [views, setViews] = useState(includedViews);
   const handleClose = () => setLibraryOpen(false);
@@ -56,7 +56,7 @@ export default function Library({ libraryOpen, setLibraryOpen, includedViews, sa
         </Tabs>
         <Grid container rowSpacing={2} columnSpacing={2}>
           {views.map(view => <Grid key={view.imgPath}>
-            <Item><LibraryCard {...{view, handleLoadView}} /></Item>
+            <Item><LibraryCard {...{view, handleLoadView, removeItem}} /></Item>
           </Grid>)}
         </Grid>
       </Box>

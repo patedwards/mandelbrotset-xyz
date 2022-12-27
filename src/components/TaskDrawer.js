@@ -11,8 +11,6 @@ import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-import InboxIcon from '@mui/icons-material/MoveToInbox';
-import MailIcon from '@mui/icons-material/Mail';
 
 const drawerWidth = 240;
 
@@ -46,24 +44,6 @@ const DrawerHeader = styled('div')(({ theme }) => ({
     ...theme.mixins.toolbar,
 }));
 
-const AppBar = styled(MuiAppBar, {
-    shouldForwardProp: (prop) => prop !== 'open',
-})(({ theme, open }) => ({
-    zIndex: theme.zIndex.drawer + 1,
-    transition: theme.transitions.create(['width', 'margin'], {
-        easing: theme.transitions.easing.sharp,
-        duration: theme.transitions.duration.leavingScreen,
-    }),
-    ...(open && {
-        marginLeft: drawerWidth,
-        width: `calc(100% - ${drawerWidth}px)`,
-        transition: theme.transitions.create(['width', 'margin'], {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.enteringScreen,
-        }),
-    }),
-}));
-
 const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' })(
     ({ theme, open }) => ({
         width: drawerWidth,
@@ -81,50 +61,50 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
     }),
 );
 
-export default function MiniDrawer({tools}) {
+const Tool = tool => {
+    return <ListItem key={tool.label} disablePadding sx={{ display: 'block' }}>
+        <ListItemButton
+            {...tool}
+            sx={{
+                minHeight: 48,
+                justifyContent: 'initial',
+                px: 2.5,
+            }}
+        >
+            <ListItemIcon
+                sx={{
+                    minWidth: 0,
+                    mr: 3,
+                    justifyContent: 'center',
+                }}
+            >
+                <tool.icon />
+            </ListItemIcon>
+            <ListItemText primary={tool.label} sx={{ opacity: 1 }} />
+        </ListItemButton>
+    </ListItem>
+}
+
+
+export default function MiniDrawer({ editTools, shareSaveTools }) {
     const theme = useTheme();
-    const [open, setOpen] = React.useState(false);
-
-    const handleDrawerOpen = () => {
-        setOpen(true);
-    };
-
-    const handleDrawerClose = () => {
-        setOpen(false);
-    };
 
     return (
         <MuiAppBar>
-            <Drawer variant="permanent" open={open}>
+            <Drawer variant="permanent" >
                 <DrawerHeader>
-                    <IconButton onClick={handleDrawerClose}>
+                    <IconButton>
                         {theme.direction === 'rtl' ? <ChevronRightIcon /> : <ChevronLeftIcon />}
                     </IconButton>
                 </DrawerHeader>
                 <Divider />
                 <List>
-                    {tools.map(tool => (
-                        <ListItem key={tool.label} disablePadding sx={{ display: 'block' }}>
-                            <ListItemButton
-                                {...tool}
-                                sx={{
-                                    minHeight: 48,
-                                    justifyContent: open ? 'initial' : 'center',
-                                    px: 2.5,
-                                }}
-                            >
-                                <ListItemIcon
-                                    sx={{
-                                        minWidth: 0,
-                                        mr: open ? 3 : 'auto',
-                                        justifyContent: 'center',
-                                    }}
-                                >
-                                    <tool.icon />
-                                </ListItemIcon>
-                                <ListItemText primary={tool.label} sx={{ opacity: open ? 1 : 0 }} />
-                            </ListItemButton>
-                        </ListItem>
+                    {editTools.map(tool => (
+                        <Tool {...tool} />
+                    ))}
+                    <Divider />
+                    {shareSaveTools.map(tool => (
+                        <Tool {...tool} />
                     ))}
                 </List>
             </Drawer>

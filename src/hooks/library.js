@@ -8,5 +8,10 @@ export const useLibraryLU = () => {
         setState([...state, view])
     }
 
-    return [state, updateLibrary]
+    const removeItem = viewToRemove => {
+        window.localStorage.removeItem(viewToRemove.imgPath)
+        setState(state.filter(view => viewToRemove.imgPath !== view.imgPath))
+    }
+
+    return [state, updateLibrary, removeItem]
 }
