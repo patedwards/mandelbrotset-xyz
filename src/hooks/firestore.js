@@ -34,7 +34,6 @@ export const useFireStoreDocument = (fullPath, defaultValue, dependencies) => {
 export const useFireStoreDocStream = (fullPath, defaultValue, dependencies) => {
   const [state, setState] = useState(defaultValue);
   const [newData, setNewData] = useState(null)
-  console.log("Calling", fullPath)
 
   useEffect(() => {
     const [path, field] = fullPath.split(".");
@@ -52,7 +51,6 @@ export const useFireStoreDocStream = (fullPath, defaultValue, dependencies) => {
       updateDocument(path, newData);
     }
   }, [newData])
-  console.log(fullPath, state)
   return [state, setNewData];
 };
 
@@ -64,7 +62,6 @@ export const useFireStoreCollection = (
 ) => {
   const [state, setState] = useState(defaultValue);
   useEffect(() => {
-    console.log("useFireStoreCollection", path);
     return streamCollectionToState(path, setState, docMap);
   }, dependencies);
 

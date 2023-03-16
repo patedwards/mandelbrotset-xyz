@@ -15,7 +15,6 @@ export default function ColorToggleButton({ colors, setColors }) {
   React.useEffect(() => {}, [chosen, colors]);
 
   const handleColorChange = color => {
-    console.log(color, colors[[chosen]]);
     setColors({ ...colors, [chosen]: { ...color.rgb, hex: color.hex } });
   };
 

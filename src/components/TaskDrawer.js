@@ -1,64 +1,12 @@
 import * as React from "react";
-import { styled, useTheme } from "@mui/material/styles";
 import MuiDrawer from "@mui/material/Drawer";
 import MuiAppBar from "@mui/material/AppBar";
-import List from "@mui/material/List";
 import { Toolbar } from "@mui/material";
 import Box from "@mui/material/Box";
 import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
-import ListItemText from "@mui/material/ListItemText";
 import useMediaQuery from "@mui/material/useMediaQuery";
-
-const drawerWidth = 48;
-
-const openedMixin = (theme) => ({
-  width: drawerWidth,
-  transition: theme.transitions.create("width", {
-    easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.enteringScreen,
-  }),
-  overflowX: "hidden",
-});
-
-const closedMixin = (theme) => ({
-  transition: theme.transitions.create("width", {
-    easing: theme.transitions.easing.sharp,
-    duration: theme.transitions.duration.leavingScreen,
-  }),
-  overflowX: "hidden",
-  width: `calc(${theme.spacing(7)} + 1px)`,
-  [theme.breakpoints.up("sm")]: {
-    width: `calc(${theme.spacing(8)} + 1px)`,
-  },
-});
-
-const DrawerHeader = styled("div")(({ theme }) => ({
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "flex-end",
-  padding: theme.spacing(0, 1),
-  // necessary for content to be below app bar
-  ...theme.mixins.toolbar,
-}));
-
-const Drawer = styled(MuiDrawer, {
-  shouldForwardProp: (prop) => prop !== "open",
-})(({ theme, open }) => ({
-  width: drawerWidth,
-  flexShrink: 0,
-  whiteSpace: "nowrap",
-  boxSizing: "border-box",
-  ...(open && {
-    ...openedMixin(theme),
-    "& .MuiDrawer-paper": openedMixin(theme),
-  }),
-  ...(!open && {
-    ...closedMixin(theme),
-    "& .MuiDrawer-paper": closedMixin(theme),
-  }),
-}));
 
 const Tool = (tool) => {
   return (
@@ -88,8 +36,7 @@ const Tool = (tool) => {
 // The TaskDrawer component is a drawer that contains the tools for editing the Mandelbrot set.
 // It is a list of buttons that can be clicked to change the Mandelbrot set.
 // It sits on the left side of the screen when the screen is wide enough, and on the bottom when the screen is narrow.
-export default function MiniDrawer({ editTools }) {
-  const theme = useTheme();
+export default function TaskDrawer({ editTools }) {
   const isScreenWidthLessThan400 = useMediaQuery("(max-width:400px)");
 
   return (
@@ -112,7 +59,7 @@ export default function MiniDrawer({ editTools }) {
           }}
         >
           {editTools.map((tool) => (
-            <Tool {...tool} />
+            <Tool {...tool} key={tool.label}/>
           ))}
         </Box>
       </MuiDrawer>

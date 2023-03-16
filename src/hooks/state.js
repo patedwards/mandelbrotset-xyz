@@ -53,7 +53,6 @@ export const appStateStream = field => (
   defaultValue = null,
   dependencies = []
 ) => {
-  console.log("profile__ appStateStream", field);
   const appStateSessionId = streamAppStateSessionId();
   const [
     state
@@ -111,7 +110,6 @@ export const updateFeatureGeometry = () => {
   useEffect(() => {
     const update = () => {
       const fid = feature.properties.__fid;
-      console.log("Yeahh!");
       updateDocument(`maps/${mapId}/features/${fid}`, {
         geometry: JSON.stringify(feature.geometry)
       });
@@ -133,7 +131,6 @@ export const updateSelectedFeatureProperty = () => {
 
   useEffect(() => {
     const update = () => {
-      console.log("Yeahh setPropertyObj!", propertyObj);
       updateDocument(`maps/${mapId}/features/${fid}`, {
         [`properties.${propertyObj.fieldName}`]: propertyObj.value
       });

@@ -28,7 +28,6 @@ const GradientStyler = ({ isActive, colors, setColors, setGradientFunction }) =>
     useEffect(() => { }, [chosen, colors]);
 
     const handleColorChange = color => {
-        console.log(color, colors[[chosen]]);
         setColors({ ...colors, [chosen]: { ...color.rgb, hex: color.hex } });
     };
 

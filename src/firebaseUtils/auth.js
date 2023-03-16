@@ -8,7 +8,6 @@ export const handleSignIn = async setIsLoggedIn => {
   // Start sign in process
   try {
     const response = await firebase.auth().signInWithPopup(provider);
-    console.log("signed in", response)
     setIsLoggedIn(true)
   } catch (error) {
     console.log(error.message);
