@@ -5,8 +5,9 @@ import PaletteIcon from "@mui/icons-material/Palette";
 import EditLocationIcon from "@mui/icons-material/EditLocation";
 import EditParametersIcon from "@mui/icons-material/Functions";
 import useMediaQuery from "@mui/material/useMediaQuery";
+import CloseIcon from "@mui/icons-material/Close";
 
-import { Stack, Box } from "@mui/material";
+import { Stack, Box, IconButton } from "@mui/material";
 
 import theme from "./Theme";
 
@@ -38,6 +39,72 @@ Todos:
 - Demonstrate some geometric properties through interactivity (https://en.wikipedia.org/wiki/Mandelbrot_set#Geometry)
 */
 
+// The controls component is a container for the tools that are available to the user
+// When the screen is narrow, the controls are just to the left of the drawer.
+// When the screen is wide, the controls are in middle of the screen, and the drawer is on the bottom
+// There's a circle x button in the top right of the controls that closes the controls
+const Controls = ({
+  activeTask,
+  setZActivity,
+  setZActivityFormSubmit,
+  parametersActivity,
+  setParametersFormSubmit,
+  colors,
+  setColors,
+  setGradientFunction,
+  handleCloseControls,
+}) => {
+  const isScreenWidthLessThan400 = useMediaQuery("(max-width:400px)");
+  return (
+    <Box
+      sx={{
+        width: 360,
+        position: "absolute",
+        zIndex: 1000,
+        left: isScreenWidthLessThan400 ? 0 : 72,
+        top: isScreenWidthLessThan400 ? null : 72,
+        bottom: isScreenWidthLessThan400 ? 40 : null,
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        p: 2,
+        backgroundColor: "white",
+        boxShadow: 1,
+        borderRadius: 1,
+        opacity: 0.9,
+      }}
+    >
+      <Box sx={{ position: "absolute", top: 0, right: 0, p: 1, zIndex: 10000 }}>
+        <IconButton
+          onClick={handleCloseControls}
+          sx={{ backgroundColor: "white", borderRadius: 1 }}
+        >
+          <CloseIcon />
+        </IconButton>
+      </Box>
+      <Stack spacing={2}>
+        {activeTask === taskNames.coordinateSetter ? (
+          <CoordinateSetter
+            {...{ ...setZActivity, formSubmit: setZActivityFormSubmit }}
+          />
+        ) : null}
+        {activeTask === taskNames.styleSetter ? (
+          <GradientStyler {...{ colors, setColors, setGradientFunction }} />
+        ) : null}
+        {activeTask === taskNames.parametersSetter ? (
+          <CoordinateSetter
+            {...{
+              ...parametersActivity,
+              formSubmit: setParametersFormSubmit,
+            }}
+          />
+        ) : null}
+      </Stack>
+    </Box>
+  );
+};
+
 function App() {
   // Parameters
   const [maxIterations, setMaxIterations] = useState(100);
@@ -59,8 +126,17 @@ function App() {
   const [z, setZ] = useState({ x: 0, y: 0 });
   // Component toggling
   const [activeTask, setActiveTask] = useState(null);
+  const [showControls, setShowControls] = useState(false);
 
   const isScreenWidthLessThan400 = useMediaQuery("(max-width:400px)");
+
+  const handleCloseControls = () => setShowControls(false);
+
+  // When a new active task is set, show the controls
+  useEffect(() => {
+    setShowControls(activeTask !== null);
+  }, [activeTask]);
+
 
   // Available tools
   const tools = {
@@ -150,46 +226,38 @@ function App() {
 
   //
   return (
-    <div>
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: isScreenWidthLessThan400 ? "column-reverse" : "row",
-          minHeight: "100vh",
+    <div
+      style={{
+        display: "flex",
+        flexDirection: isScreenWidthLessThan400 ? "column" : "row",
+        minHeight: "100vh",
+      }}
+    >
+      <TaskDrawer editTools={editTools} />
+      <AppBar />
+      {showControls? <Controls
+        {...{
+          activeTask,
+          setActiveTask,
+          setZActivity,
+          setZActivityFormSubmit,
+          parametersActivity,
+          setParametersFormSubmit,
+          colors,
+          setColors,
+          setGradientFunction,
+          handleCloseControls
         }}
-      >
-        <TaskDrawer editTools={editTools} />
-        <AppBar />
-        <Box sx={{ position: "absolute", top: 80, left: 80, width: 360 }}>
-          <Stack spacing={2}>
-            {activeTask === taskNames.coordinateSetter ? (
-              <CoordinateSetter
-                {...{ ...setZActivity, formSubmit: setZActivityFormSubmit }}
-              />
-            ) : null}
-            {activeTask === taskNames.styleSetter ? (
-              <GradientStyler {...{ colors, setColors, setGradientFunction }} />
-            ) : null}
-            {activeTask === taskNames.parametersSetter ? (
-              <CoordinateSetter
-                {...{
-                  ...parametersActivity,
-                  formSubmit: setParametersFormSubmit,
-                }}
-              />
-            ) : null}
-          </Stack>
-        </Box>
-        <Map
-          {...{
-            maxIterations,
-            colors,
-            gradientFunction,
-            setViewState,
-            initialViewState: viewState,
-          }}
-        />
-      </Box>
+      /> : null}
+      <Map
+        {...{
+          maxIterations,
+          colors,
+          gradientFunction,
+          setViewState,
+          initialViewState: viewState,
+        }}
+      />
     </div>
   );
 }
