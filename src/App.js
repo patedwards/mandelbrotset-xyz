@@ -7,6 +7,8 @@ import PaletteIcon from "@mui/icons-material/Palette";
 import SaveIcon from '@mui/icons-material/BookmarkAdd';
 import EditLocationIcon from '@mui/icons-material/EditLocation';
 import ScreenshotMonitorIcon from '@mui/icons-material/ScreenshotMonitor';
+import EditParametersIcon from '@mui/icons-material/Functions';
+
 import { Stack, Box } from "@mui/material";
 
 import theme from "./Theme";
@@ -29,7 +31,8 @@ const includedViews = [
 
 const taskNames = {
   coordinateSetter: "COORDINATE_SETTER",
-  styleSetter: "STYLE_SETTER"
+  styleSetter: "STYLE_SETTER",
+  parametersSetter: "PARAMETERS_SETTER"
 }
 
 
@@ -136,6 +139,16 @@ function App() {
       onClick: () => setLibraryOpen(!libraryOpen),
       icon: LibraryIcon
     },
+    parametersToggle: {
+      label: "parameters",
+      onClick: () => setActiveTask(taskNames.parametersSetter),
+      icon: EditParametersIcon
+    },
+    styleToggle: {
+      label: "style",
+      onClick: () => setActiveTask(taskNames.styleSetter),
+      icon: PaletteIcon
+    },
     saveToggle: {
       label: "save",
       onClick: handleSaveView,
@@ -146,17 +159,12 @@ function App() {
       onClick: handleScreenshot,
       icon: ScreenshotMonitorIcon
     },
-    styleToggle: {
-      label: "style",
-      onClick: () => setActiveTask(taskNames.styleSetter),
-      icon: PaletteIcon
-    }
+    
   }
-
 
   // Activity configuration
 
-  const editTools = [tools.xyToggle, tools.styleToggle]
+  const editTools = [tools.xyToggle, tools.parametersToggle, tools.styleToggle]
   const shareSaveTools = [tools.libraryToggle, tools.saveToggle, tools.captureToggle]
 
   // TODO: put this in a State and use useEffect to update step size and initial value for max its based on Zoom value
@@ -172,7 +180,6 @@ function App() {
       {
         label: "Zoom", inputType: "number", initialValue: viewState.zoom, inputProps: { step: 1 }
       },
-      { label: "Number of iterations", initialValue: maxIterations, inputType: "number", inputProps: { step: 100 } }
     ]
   }
 
@@ -183,6 +190,16 @@ function App() {
       ...zToLatLon({ x: formState["X"], y: formState["Y"] }),
       zoom: formState["Zoom"],
     })
+    setMaxIterations(formState["Number of iterations"])
+  }
+
+  const parametersActivity = {
+    tools: [
+      { label: "Number of iterations", initialValue: maxIterations, inputType: "number", inputProps: { step: 100 } }
+    ]
+  }
+
+  const setParametersFormSubmit = formState => {
     setMaxIterations(formState["Number of iterations"])
   }
 
@@ -209,8 +226,9 @@ function App() {
       <AppBar />
       <Box sx={{ position: "absolute", top: 80, left: 80, width: 360 }}>
         <Stack spacing={2}>
-          {activeTask === taskNames.coordinateSetter ? <CoordinateSetter {...{ ...setZActivity, isActive: showCoordinateSetter, formSubmit: setZActivityFormSubmit }} /> : null}
-          {activeTask === taskNames.styleSetter ? <GradientStyler {...{ colors, setColors, isActive: stylebarOpen, setGradientFunction }} /> : null}
+          {activeTask === taskNames.coordinateSetter ? <CoordinateSetter {...{ ...setZActivity, formSubmit: setZActivityFormSubmit }} /> : null}
+          {activeTask === taskNames.styleSetter ? <GradientStyler {...{ colors, setColors, setGradientFunction }} /> : null}
+          {activeTask === taskNames.parametersSetter ? <CoordinateSetter {...{ ...parametersActivity,  formSubmit: setParametersFormSubmit }} /> : null}
         </Stack>
       </Box>
       <Map {...{ maxIterations, colors, gradientFunction, setViewState, initialViewState: viewState }} />

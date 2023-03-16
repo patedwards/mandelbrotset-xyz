@@ -2,7 +2,7 @@ import { Stack, TextField, Box } from "@mui/material";
 import { useState, useEffect } from "react";
 import { Button } from "@mui/material"
 
-const CoordinateSetter = ({ isActive, tools, formSubmit }) => {
+const CoordinateSetter = ({ tools, formSubmit }) => {
     const [formState, setFormState] = useState(tools.reduce((a, tool) => ({ ...a, [tool.label]: tool.initialValue }), {}))
     const [activeField, setActiveField] = useState(null)
 
