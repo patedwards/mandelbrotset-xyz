@@ -1,4 +1,3 @@
-import { Deck } from "@deck.gl/core";
 import { BitmapLayer } from "@deck.gl/layers";
 import { makeMandelbrot } from "../utilities/tileGeneration";
 import { TileLayer } from "@deck.gl/geo-layers";
@@ -51,33 +50,6 @@ const convertDataToPixels = (data, imageData, pixelTransform) => {
     }
     return imageData;
 };
-
-export const captureImage = async ({ viewState,
-    maxIterations,
-    colors,
-    gradientFunction, ratio }) => {
-
-
-    const layer = createTileLayer({
-        maxIterations,
-        colors,
-        gradientFunction
-    })
-
-    var a = document.createElement('a');
-    const deck = new Deck({
-        initialViewState: { ...viewState }, width: viewState.width, height: viewState.height, layers: [layer],
-        useDevicePixels: ratio,
-        onAfterRender: async () => {
-            a.href = deck.canvas.toDataURL()
-        }
-    });
-
-    const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay))
-    await sleep(5000)
-    deck.finalize()
-    return a
-}
 
 export const createTileLayer = ({
     maxIterations,

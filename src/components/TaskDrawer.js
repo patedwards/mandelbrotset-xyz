@@ -2,28 +2,35 @@ import * as React from "react";
 import MuiDrawer from "@mui/material/Drawer";
 import MuiAppBar from "@mui/material/AppBar";
 import { Toolbar } from "@mui/material";
-import Box from "@mui/material/Box";
 import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import useMediaQuery from "@mui/material/useMediaQuery";
+import Paper from "@mui/material/Paper";
+
+import { useTheme } from "@mui/material/styles";  // Import the useTheme hook
 
 const Tool = (tool) => {
+  const theme = useTheme();
+
   return (
-    <ListItem key={tool.label} disablePadding sx={{ display: "block" }}>
+    <ListItem key={tool.label} disablePadding>
       <ListItemButton
         {...tool}
         sx={{
-          minHeight: 48,
-          justifyContent: "initial",
-          px: 2.5,
+          width: "auto",
+          height: 48,  // Set a definite height
+          display: 'flex',  // Ensure this is a flex container
+          justifyContent: "center",  // Center the content horizontally
+          alignItems: 'center',  // Center the content vertically
+          padding: '0 0.75rem',  // Adjust padding for better centering
         }}
       >
         <ListItemIcon
           sx={{
             minWidth: 0,
-            mr: 3,
             justifyContent: "center",
+            color: theme.palette.primary.main,
           }}
         >
           <tool.icon />
@@ -33,35 +40,34 @@ const Tool = (tool) => {
   );
 };
 
-// The TaskDrawer component is a drawer that contains the tools for editing the Mandelbrot set.
-// It is a list of buttons that can be clicked to change the Mandelbrot set.
-// It sits on the left side of the screen when the screen is wide enough, and on the bottom when the screen is narrow.
 export default function TaskDrawer({ editTools }) {
-  const isScreenWidthLessThan400 = useMediaQuery("(max-width:400px)");
-
+  const isMobileScreen = useMediaQuery("(max-width:600px)");
+  const theme = useTheme();
   return (
-    <MuiAppBar>
+    <MuiAppBar position="static">
       <Toolbar />
       <MuiDrawer
         variant="permanent"
-        anchor={isScreenWidthLessThan400 ? "bottom" : "left"}
+        anchor={isMobileScreen ? "bottom" : "left"}
         open={true}
+        PaperProps={{ elevation: 4, style: { overflowX: "hidden", marginTop: 64 } }} // Added marginTop to make space for the AppBar
       >
-        <Box
+        <Paper
           sx={{
             display: "flex",
-            flexDirection: isScreenWidthLessThan400 ? "row" : "column",
-            width: isScreenWidthLessThan400 ? "100%" : 60,
-            height: isScreenWidthLessThan400 ? 48 : "100%",
-            alignItems: isScreenWidthLessThan400 ? "center" : "center",
-            justifyContent: isScreenWidthLessThan400 ? "center" : "left",
-            paddingTop: isScreenWidthLessThan400 ? 0 : 8,
+            backgroundColor: theme.palette.white.main,
+            flexDirection: isMobileScreen ? "row" : "column",
+            width: isMobileScreen ? "100%" : 48,
+            height: isMobileScreen ? 48 : "100%",
+            alignItems: isMobileScreen ? "center" : "initial",  // Changed to always center vertically
+            justifyContent: isMobileScreen ? "space-between" : "initial",  // Centered on desktop
+            padding: 0,
           }}
         >
           {editTools.map((tool) => (
-            <Tool {...tool} key={tool.label}/>
+            <Tool {...tool} key={tool.label} />
           ))}
-        </Box>
+        </Paper>
       </MuiDrawer>
     </MuiAppBar>
   );

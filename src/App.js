@@ -1,11 +1,19 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+
+import {
+  BrowserRouter as Router,
+  useLocation,
+  useSearchParams,
+  useNavigate,
+} from "react-router-dom";
 
 import { ThemeProvider } from "@mui/material/styles";
 import PaletteIcon from "@mui/icons-material/Palette";
+import SnapIcon from "@mui/icons-material/Save";
 import EditLocationIcon from "@mui/icons-material/EditLocation";
 import EditParametersIcon from "@mui/icons-material/Functions";
 import useMediaQuery from "@mui/material/useMediaQuery";
-
+import LibraryIcon from "@mui/icons-material/Collections";
 
 import theme from "./Theme";
 
@@ -14,58 +22,160 @@ import AppBar from "./components/AppBar";
 import TaskDrawer from "./components/TaskDrawer";
 import Controls from "./components/Controls";
 import { taskNames } from "./components/Controls";
+import Library from "./components/Library";
 
-import { zToLatLon, latLongToZ } from "./utilities/math";
+import { decodeColors, encodeColors } from "./utilities/colors";
 
-
-
-/*
-
-Todos:
-- Add a label and description to the saving workflow, and include the z and magnification
-- Add a description to the page,and a place for blogging about Mandelbrot set news
-- figure out how to make the thumbnails - consider using a Cloud function that automatically runs when the user saves
-- Consider using Firestore for everyone's library
-- curate a set of places in the set to zoom to, but also show their locations if they repeat
-- incrementing the maxIterations sends the tiles on for more processing rather than regenerating completely OR we store them locally for reading
-- Make the black toggleable (search for idea-1 in code)
-- Zoom in on self similarity by linking the scroll of zoom in to panning in the x-direction (https://en.wikipedia.org/wiki/Mandelbrot_set#Self-similarity)
-- Demonstrate some geometric properties through interactivity (https://en.wikipedia.org/wiki/Mandelbrot_set#Geometry)
-*/
-
+const DEFAULT_MAX_ITERATIONS = 100;
 
 function App() {
-  // Parameters
-  const [maxIterations, setMaxIterations] = useState(100);
-  const [gradientFunction, setGradientFunction] = useState("standard");
-  // TODO: move this config to defaults or "inital-settings.js" or something
-  const [colors, setColors] = useState({
-    start: { r: 35, g: 44, b: 51, hex: "#232C33" },
-    middle: { r: 219, g: 62, b: 0, hex: "#db3e00" },
-    end: { r: 83, g: 0, b: 235, hex: "#5300eb" },
+  // URL state
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [getStateFromUrl, setStateFromUrl] = useState(true);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Styling state
+  const [maxIterations, setMaxIterations] = useState(
+    // Initialize maxIterations state from URL parameters or use default values
+    parseFloat(searchParams.get("maxIterations")) || DEFAULT_MAX_ITERATIONS
+  );
+  const [gradientFunction, setGradientFunction] = useState(
+    // Initialize gradientFunction state from URL parameters or use default values
+    searchParams.get("gradientFunction") || "standard"
+  );
+  const [colors, setColors] = useState(() => {
+    // Initialize colors state from URL parameters or use default values
+    const colorParam = searchParams.get("colors");
+    if (colorParam) {
+      const {start, middle, end} = decodeColors(colorParam);
+      return { start, middle, end };
+    } else {
+      return {
+        start: { r: 35, g: 44, b: 51, hex: "#232C33" },
+        middle: { r: 219, g: 62, b: 0, hex: "#db3e00" },
+        end: { r: 83, g: 0, b: 235, hex: "#5300eb" },
+      };
+    }
   });
+
   // Map state
+  const mapRef = useRef();
   const [viewState, setViewState] = useState({
-    longitude: 0,
-    latitude: 0,
-    zoom: 2,
+    // Initialize state from URL parameters or use default values
+    longitude: parseFloat(searchParams.get("x")) || 0,
+    latitude: parseFloat(searchParams.get("y")) || 0,
+    zoom: parseFloat(searchParams.get("z")) || 2,
     minZoom: 2,
     maxZoom: Infinity,
+    bearing: 0,
+    pitch: 0,
   });
-  const [z, setZ] = useState({ x: 0, y: 0 });
+
   // Component toggling
+  const [libraryOpen, setLibraryOpen] = useState(false);
   const [activeTask, setActiveTask] = useState(null);
   const [showControls, setShowControls] = useState(false);
 
+  // Media queries
   const isScreenWidthLessThan400 = useMediaQuery("(max-width:400px)");
 
+  // Event handlers
   const handleCloseControls = () => setShowControls(false);
+
+  const handleShare = ({viewState_, maxIterations_, colors_, gradientFunction_}) => {
+    // Create a URL query string using the snap's properties
+    const newQuery = new URLSearchParams({
+      y: viewState_.latitude,
+      x: viewState_.longitude,
+      z: viewState_.zoom,
+      maxIterations: maxIterations_,
+      colors: encodeColors(colors_), // encodeColors is a function from src/utilities/colors.js
+      gradientFunction: gradientFunction_,
+    }).toString();
+
+    // Generate the full URL
+    const fullURL = `${window.location.origin}/?${newQuery}`;
+
+    // Copy the URL to the clipboard
+    navigator.clipboard.writeText(fullURL);
+};
+
+
+  const handleLibrarySelect = ({
+    newViewState,
+    newColors,
+    newGradientFunction,
+    newMaxIterations,
+  }) => {
+    // Create a URL query string with the parameters you want to change
+    const newQuery = new URLSearchParams({
+      y: newViewState.latitude,
+      x: newViewState.longitude,
+      z: newViewState.zoom,
+      maxIterations: newMaxIterations
+    }).toString();
+
+    console.log("updating...", maxIterations, newMaxIterations)
+
+    // Navigate to the new URL
+    navigate(`/?${newQuery}`, { replace: true });
+    setColors(newColors);
+    setGradientFunction(newGradientFunction);
+    setMaxIterations(newMaxIterations);
+    setStateFromUrl(true);
+  };
+
+  const handleButtonClick = () => {
+    if (mapRef.current) {
+      mapRef.current.captureThumbnail();
+    }
+  };
+
+  // This effect runs when the URL changes, and updates the state accordingly (if the state has not already been updated from the URL)
+  useEffect(() => {
+    if (!getStateFromUrl) {
+      return;
+    }
+
+    const queryParams = new URLSearchParams(location.search);
+
+    // Parse the parameters from the URL query
+    const newViewState = {
+      latitude: parseFloat(queryParams.get("y")) || 0,
+      longitude: parseFloat(queryParams.get("x")) || 0,
+      zoom: parseFloat(queryParams.get("z")) || 2,
+      minZoom: 2,
+      maxZoom: Infinity,
+      bearing: 0,
+      pitch: 0,
+    };
+    const newMaxIterations = parseInt(queryParams.get("maxIterations"))
+
+    setViewState(newViewState);
+    setMaxIterations(newMaxIterations || DEFAULT_MAX_ITERATIONS);
+    setStateFromUrl(false);
+  }, [location.search, getStateFromUrl]);
+
+  // Update URL when state changes
+  useEffect(() => {
+    setSearchParams({
+      x: viewState.longitude.toString(),
+      y: viewState.latitude.toString(),
+      z: viewState.zoom.toString(),
+      // don't include the "#" in the URL
+      maxIterations: maxIterations || DEFAULT_MAX_ITERATIONS,
+      colors: `${colors.start.hex}-${colors.middle.hex}-${colors.end.hex}`.replace(/#/g, ""),
+      gradientFunction: gradientFunction,
+      
+    });
+
+  }, [viewState, maxIterations, gradientFunction, colors, setSearchParams]);
 
   // When a new active task is set, show the controls
   useEffect(() => {
     setShowControls(activeTask !== null);
   }, [activeTask]);
-
 
   // Available tools
   const tools = {
@@ -84,45 +194,26 @@ function App() {
       onClick: () => setActiveTask(taskNames.styleSetter),
       icon: PaletteIcon,
     },
+    captureButton: {
+      label: "capture-map",
+      onClick: handleButtonClick,
+      icon: SnapIcon,
+    },
+    openLibraryButton: {
+      label: "open-image-in-new-tab",
+      onClick: () => setLibraryOpen(true),
+      icon: LibraryIcon,
+    },
   };
 
   // Activity configuration
-
-  const editTools = [tools.xyToggle, tools.parametersToggle, tools.styleToggle];
-
-  // TODO: put this in a State and use useEffect to update step size and initial value for max its based on Zoom value
-  // TODO: make the setViewState work
-  const setZActivity = {
-    tools: [
-      {
-        label: "X",
-        inputType: "number",
-        initialValue: z.x,
-        inputProps: { step: 1 / 2 ** (viewState.zoom + 1) },
-      },
-      {
-        label: "Y",
-        inputType: "number",
-        initialValue: z.y,
-        inputProps: { step: 1 / 2 ** (viewState.zoom + 1) },
-      },
-      {
-        label: "Zoom",
-        inputType: "number",
-        initialValue: viewState.zoom,
-        inputProps: { step: 1 },
-      },
-    ],
-  };
-
-  const setZActivityFormSubmit = (formState) => {
-    setViewState({
-      ...viewState,
-      ...zToLatLon({ x: formState["X"], y: formState["Y"] }),
-      zoom: formState["Zoom"],
-    });
-    setMaxIterations(formState["Number of iterations"]);
-  };
+  const editTools = [
+    tools.xyToggle,
+    tools.parametersToggle,
+    tools.styleToggle,
+    tools.captureButton,
+    tools.openLibraryButton,
+  ];
 
   const parametersActivity = {
     tools: [
@@ -139,20 +230,6 @@ function App() {
     setMaxIterations(formState["Number of iterations"]);
   };
 
-  useEffect(() => {
-    setZ({ ...latLongToZ(viewState), ...viewState });
-  }, [viewState]);
-
-  /*
-  Careful about cycling dependency here
-  useEffect(() => {
-  
-    setViewState({ ...zToLatLon(z), ...viewState, })
-  
-  }, [z])
-  */
-
-  //
   return (
     <div
       style={{
@@ -163,21 +240,22 @@ function App() {
     >
       <TaskDrawer editTools={editTools} />
       <AppBar />
-      {showControls? <Controls
-        {...{
-          activeTask,
-          setActiveTask,
-          setZActivity,
-          setZActivityFormSubmit,
-          parametersActivity,
-          setParametersFormSubmit,
-          colors,
-          setColors,
-          setGradientFunction,
-          handleCloseControls
-        }}
-      /> : null}
+      {showControls ? (
+        <Controls
+          {...{
+            activeTask,
+            setActiveTask,
+            parametersActivity,
+            setParametersFormSubmit,
+            colors,
+            setColors,
+            setGradientFunction,
+            handleCloseControls,
+          }}
+        />
+      ) : null}
       <Map
+        ref={mapRef}
         {...{
           maxIterations,
           colors,
@@ -186,6 +264,12 @@ function App() {
           initialViewState: viewState,
         }}
       />
+      <Library
+        libraryOpen={libraryOpen}
+        setLibraryOpen={setLibraryOpen}
+        handleLibrarySelect={handleLibrarySelect}
+        handleShare={handleShare}
+      />
     </div>
   );
 }
@@ -193,7 +277,9 @@ function App() {
 const RootApp = () => {
   return (
     <ThemeProvider theme={theme}>
-      <App />
+      <Router>
+        <App />
+      </Router>
     </ThemeProvider>
   );
 };
