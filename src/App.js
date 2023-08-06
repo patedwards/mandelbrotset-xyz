@@ -10,7 +10,6 @@ import {
 import { ThemeProvider } from "@mui/material/styles";
 import PaletteIcon from "@mui/icons-material/Palette";
 import SnapIcon from "@mui/icons-material/Save";
-import EditLocationIcon from "@mui/icons-material/EditLocation";
 import EditParametersIcon from "@mui/icons-material/Functions";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import LibraryIcon from "@mui/icons-material/Collections";
@@ -48,7 +47,7 @@ function App() {
     // Initialize colors state from URL parameters or use default values
     const colorParam = searchParams.get("colors");
     if (colorParam) {
-      const {start, middle, end} = decodeColors(colorParam);
+      const { start, middle, end } = decodeColors(colorParam);
       return { start, middle, end };
     } else {
       return {
@@ -83,7 +82,12 @@ function App() {
   // Event handlers
   const handleCloseControls = () => setShowControls(false);
 
-  const handleShare = ({viewState_, maxIterations_, colors_, gradientFunction_}) => {
+  const handleShare = ({
+    viewState_,
+    maxIterations_,
+    colors_,
+    gradientFunction_,
+  }) => {
     // Create a URL query string using the snap's properties
     const newQuery = new URLSearchParams({
       y: viewState_.latitude,
@@ -99,8 +103,7 @@ function App() {
 
     // Copy the URL to the clipboard
     navigator.clipboard.writeText(fullURL);
-};
-
+  };
 
   const handleLibrarySelect = ({
     newViewState,
@@ -113,10 +116,10 @@ function App() {
       y: newViewState.latitude,
       x: newViewState.longitude,
       z: newViewState.zoom,
-      maxIterations: newMaxIterations
+      maxIterations: newMaxIterations,
     }).toString();
 
-    console.log("updating...", maxIterations, newMaxIterations)
+    console.log("updating...", maxIterations, newMaxIterations);
 
     // Navigate to the new URL
     navigate(`/?${newQuery}`, { replace: true });
@@ -150,7 +153,7 @@ function App() {
       bearing: 0,
       pitch: 0,
     };
-    const newMaxIterations = parseInt(queryParams.get("maxIterations"))
+    const newMaxIterations = parseInt(queryParams.get("maxIterations"));
 
     setViewState(newViewState);
     setMaxIterations(newMaxIterations || DEFAULT_MAX_ITERATIONS);
@@ -165,11 +168,13 @@ function App() {
       z: viewState.zoom.toString(),
       // don't include the "#" in the URL
       maxIterations: maxIterations || DEFAULT_MAX_ITERATIONS,
-      colors: `${colors.start.hex}-${colors.middle.hex}-${colors.end.hex}`.replace(/#/g, ""),
+      colors:
+        `${colors.start.hex}-${colors.middle.hex}-${colors.end.hex}`.replace(
+          /#/g,
+          ""
+        ),
       gradientFunction: gradientFunction,
-      
     });
-
   }, [viewState, maxIterations, gradientFunction, colors, setSearchParams]);
 
   // When a new active task is set, show the controls
@@ -179,11 +184,6 @@ function App() {
 
   // Available tools
   const tools = {
-    xyToggle: {
-      label: "Set coordinates",
-      onClick: () => setActiveTask(taskNames.coordinateSetter),
-      icon: EditLocationIcon,
-    },
     parametersToggle: {
       label: "parameters",
       onClick: () => setActiveTask(taskNames.parametersSetter),
@@ -208,7 +208,6 @@ function App() {
 
   // Activity configuration
   const editTools = [
-    tools.xyToggle,
     tools.parametersToggle,
     tools.styleToggle,
     tools.captureButton,
@@ -235,12 +234,20 @@ function App() {
       style={{
         display: "flex",
         flexDirection: isScreenWidthLessThan400 ? "column" : "row",
-        minHeight: "100vh",
+        alignItems: "center",
+        height: "100vh",
+        width: "100vw",
+        overflow: "hidden", // to avoid scrolling of the main container
       }}
     >
+      {/* Render the TaskDrawer */}
       <TaskDrawer editTools={editTools} />
+
+      {/* Render the AppBar */}
       <AppBar />
-      {showControls ? (
+
+      {/* Render the Controls when active */}
+      {showControls && (
         <Controls
           {...{
             activeTask,
@@ -253,17 +260,23 @@ function App() {
             handleCloseControls,
           }}
         />
-      ) : null}
-      <Map
-        ref={mapRef}
-        {...{
-          maxIterations,
-          colors,
-          gradientFunction,
-          setViewState,
-          initialViewState: viewState,
-        }}
-      />
+      )}
+
+      {/* Render the main Map component. This should expand to take any available space. */}
+      <div style={{ flex: 1, overflow: "hidden" }}>
+        <Map
+          ref={mapRef}
+          {...{
+            maxIterations,
+            colors,
+            gradientFunction,
+            setViewState,
+            initialViewState: viewState,
+          }}
+        />
+      </div>
+
+      {/* Render the Library dialog */}
       <Library
         libraryOpen={libraryOpen}
         setLibraryOpen={setLibraryOpen}

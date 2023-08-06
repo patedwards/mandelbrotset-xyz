@@ -13,12 +13,13 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 
+import { useStore } from "../hooks/store";
+
 import LibraryCard from "./LibraryCard";
 
 const ImageViewerDialog = ({
   libraryOpen,
   setLibraryOpen,
-  setViewState,
   handleLibrarySelect,
   handleShare,
 }) => {
@@ -29,14 +30,13 @@ const ImageViewerDialog = ({
   const [selectedSnap, setSelectedSnap] = useState(null);
   const [itemName, setItemName] = useState("");
 
-  const [library, setLibrary] = useState([]);
+  const { library, removeLibraryItem, updateLibraryItem, syncLibrary } = useStore();
 
   useEffect(() => {
-    // Fetch the library from localStorage when the component is mounted
-    const initialLibrary = JSON.parse(localStorage.getItem("library")) || [];
-    setLibrary(initialLibrary);
-  }, []); // Empty dependency array means this useEffect runs once when component mounts
-
+    if (libraryOpen) {
+      syncLibrary();
+    }
+  }, [libraryOpen, syncLibrary]);
 
   const handleCardClick = ({
     viewState,
@@ -56,14 +56,8 @@ const ImageViewerDialog = ({
   };
 
   const handleDelete = (snap) => {
-    localStorage.removeItem(snap.imageLocation);
-    const updatedLibrary = library.filter(
-      (item) => item.imageLocation !== snap.imageLocation
-    );
-    localStorage.setItem("library", JSON.stringify(updatedLibrary));
-    setLibrary(updatedLibrary);  // Update the state to trigger a re-render
+    removeLibraryItem(snap.imageLocation);
   };
-
 
   const handleEdit = (snap) => {
     setSelectedSnap(snap);
@@ -72,12 +66,7 @@ const ImageViewerDialog = ({
   };
 
   const saveName = () => {
-    const updatedLibrary = [...library];
-    const snapIndex = updatedLibrary.findIndex(
-      (item) => item.imageLocation === selectedSnap.imageLocation
-    );
-    updatedLibrary[snapIndex].name = itemName;
-    localStorage.setItem("library", JSON.stringify(updatedLibrary));
+    updateLibraryItem(selectedSnap.imageLocation, itemName);
     setEditDialogOpen(false);
   };
 

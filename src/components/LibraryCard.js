@@ -11,6 +11,20 @@ import ShareIcon from "@mui/icons-material/Share";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 
+/*
+The typography on the card below gets in the way of the click,
+ to resolve this:
+  1. Remove the Typography component
+  2. Add a new Typography component to the LibraryCard component
+  3. Add the name prop to the Typography component
+  4. Add the following style to the Typography component:
+
+  style={{
+    position: "absolute",
+    top: 0,
+
+*/
+
 const LibraryCard = ({
   snap,
   handleCardClick,
@@ -43,6 +57,7 @@ const LibraryCard = ({
               variant="h7"
               style={{
                 position: "absolute",
+                pointerEvents: "none", // This is important to allow clicks to pass through
                 top: 0,
                 left: 0,
                 height: "30px",

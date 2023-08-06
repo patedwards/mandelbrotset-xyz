@@ -7,6 +7,8 @@ import {
   useState,
 } from "react";
 import DeckGL from "@deck.gl/react";
+
+import { useStore } from "../hooks/store";
 import { createTileLayer } from "../utilities/deck";
 
 const Map = forwardRef(
@@ -14,6 +16,7 @@ const Map = forwardRef(
     { maxIterations, colors, gradientFunction, initialViewState, setViewState },
     ref
   ) => {
+    const { addLibraryItem } = useStore();
     const layer = createTileLayer({ maxIterations, colors, gradientFunction });
 
     const deckRef = useRef();
@@ -102,11 +105,8 @@ const Map = forwardRef(
         localStorage.setItem(imageLocation, base64Image);
 
         // Update the library
-        const library = JSON.parse(localStorage.getItem("library")) || [];
         const newItem = { imageLocation, viewState: initialViewState, maxIterations, colors, gradientFunction };
-        console.log(newItem);
-        library.push(newItem);
-        localStorage.setItem("library", JSON.stringify(library));
+        addLibraryItem(newItem);
 
         setCaptureThumbnail(false);
       }

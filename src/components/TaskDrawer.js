@@ -56,6 +56,7 @@ export default function TaskDrawer({ editTools }) {
           sx={{
             display: "flex",
             backgroundColor: theme.palette.white.main,
+            position: "relative",
             flexDirection: isMobileScreen ? "row" : "column",
             width: isMobileScreen ? "100%" : 48,
             height: isMobileScreen ? 48 : "100%",

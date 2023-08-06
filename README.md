@@ -27,3 +27,8 @@ Run `npm install`
 1. From within mandelbrotset-xyz, run `npm start`
 2. Open your browser and navigate to http://localhost:3000.
 3. Explore the Mandelbrot set!
+
+## Todos
+
+[ ] make the x,y and z relate to position in complex space, not web mercator
+[ ] restore the x,y,z form setter

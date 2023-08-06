@@ -1,82 +1,81 @@
 import React from "react";
-import { Stack, Box, IconButton } from "@mui/material";
+import { Stack, Box, IconButton, Button } from "@mui/material";  // added Button
 import CloseIcon from "@mui/icons-material/Close";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import CoordinateSetter from "./CoordinateSetter";
 import GradientStyler from "./GradientStyler";
 
+import { useTheme } from "@mui/material/styles";
 
 export const taskNames = {
-    coordinateSetter: "COORDINATE_SETTER",
-    styleSetter: "STYLE_SETTER",
-    parametersSetter: "PARAMETERS_SETTER",
-  };
+  coordinateSetter: "COORDINATE_SETTER",
+  styleSetter: "STYLE_SETTER",
+  parametersSetter: "PARAMETERS_SETTER",
+};
 
-// The controls component is a container for the tools that are available to the user
-// When the screen is narrow, the controls are just to the left of the drawer.
-// When the screen is wide, the controls are in middle of the screen, and the drawer is on the bottom
-// There's a circle x button in the top right of the controls that closes the controls
 const Controls = ({
-    activeTask,
-    setZActivity,
-    setZActivityFormSubmit,
-    parametersActivity,
-    setParametersFormSubmit,
-    colors,
-    setColors,
-    setGradientFunction,
-    handleCloseControls,
-  }) => {
-    const isScreenWidthLessThan400 = useMediaQuery("(max-width:400px)");
-    return (
-      <Box
-        sx={{
-          width: 360,
-          position: "absolute",
-          zIndex: 1000,
-          left: isScreenWidthLessThan400 ? 0 : 72,
-          top: isScreenWidthLessThan400 ? null : 72,
-          bottom: isScreenWidthLessThan400 ? 40 : null,
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          alignItems: "center",
-          p: 2,
-          backgroundColor: "white",
-          boxShadow: 1,
-          borderRadius: 1,
-          opacity: 0.9,
-        }}
-      >
-        <Box sx={{ position: "absolute", top: 0, right: 0, p: 1, zIndex: 10000 }}>
-          <IconButton
+  activeTask,
+  setZActivity,
+  setZActivityFormSubmit,
+  parametersActivity,
+  setParametersFormSubmit,
+  colors,
+  setColors,
+  setGradientFunction,
+  handleCloseControls,
+}) => {
+  const isScreenWidthLessThan400 = useMediaQuery("(max-width:400px)");
+  const theme = useTheme();
+
+  return (
+    <Box
+      sx={{
+        width: isScreenWidthLessThan400? "100%" : "auto",
+        height: isScreenWidthLessThan400 ? "auto" : "auto",
+        maxHeight: "calc(100vh - 72px)",
+        position: "fixed",
+        zIndex: 1000,
+        left: isScreenWidthLessThan400 ? null : 60,
+        top: isScreenWidthLessThan400 ? "auto" : 72,
+        bottom: isScreenWidthLessThan400 ? 60 : null,
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: "center",
+        p: 1,
+        backgroundColor: theme.palette.white.main,
+        boxShadow: 1,
+        borderRadius: 0,
+        opacity: 1,
+      }}
+    >
+      <Stack spacing={2}>
+        {activeTask === taskNames.styleSetter ? (
+          <GradientStyler {...{ colors, setColors, setGradientFunction }} />
+        ) : null}
+        {activeTask === taskNames.parametersSetter ? (
+          <CoordinateSetter
+            {...{
+              ...parametersActivity,
+              formSubmit: setParametersFormSubmit,
+            }}
+          />
+        ) : null}
+
+        {/* Close Button at the bottom */}
+        <Box mt={2} display="flex" justifyContent="center" width="100%"> {/* Flexbox to center the button */}
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<CloseIcon />}
             onClick={handleCloseControls}
-            sx={{ backgroundColor: "white", borderRadius: 1 }}
           >
-            <CloseIcon />
-          </IconButton>
+            Close
+          </Button>
         </Box>
-        <Stack spacing={2}>
-          {activeTask === taskNames.coordinateSetter ? (
-            <CoordinateSetter
-              {...{ ...setZActivity, formSubmit: setZActivityFormSubmit }}
-            />
-          ) : null}
-          {activeTask === taskNames.styleSetter ? (
-            <GradientStyler {...{ colors, setColors, setGradientFunction }} />
-          ) : null}
-          {activeTask === taskNames.parametersSetter ? (
-            <CoordinateSetter
-              {...{
-                ...parametersActivity,
-                formSubmit: setParametersFormSubmit,
-              }}
-            />
-          ) : null}
-        </Stack>
-      </Box>
-    );
-  };
-  
+      </Stack>
+    </Box>
+  );
+};
 
 export default Controls;

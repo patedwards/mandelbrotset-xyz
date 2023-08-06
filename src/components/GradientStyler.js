@@ -32,7 +32,9 @@ const GradientStyler = ({ isActive, colors, setColors, setGradientFunction }) =>
     };
 
     return (
-        <Box sx={{ zIndex: 999, backgroundColor: "white", padding: 2 }}>
+        <Box 
+        sx={{ zIndex: 999, backgroundColor: "white", padding: 0 }}
+        >
             <Stack spacing={1} alignItems="center">
                 <Selector
                     items={gradientFunctions}

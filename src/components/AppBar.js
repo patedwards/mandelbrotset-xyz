@@ -6,7 +6,7 @@ import Typography from "@mui/material/Typography";
 export default function ButtonAppBar() {
   // TODO: use the recipe concept to create the button
   return (
-    <AppBar position="absolute" sx={{ top: 0 }}>
+    <AppBar position="fixed" sx={{ top: 0 }}>
       <Toolbar>
         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
           Mandelbrotset.xyz
