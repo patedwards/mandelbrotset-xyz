@@ -11,7 +11,7 @@ This project visualizes the Mandelbrot set using the TileLayer and BitmapLayer f
 
 # Where can I use it?
 
-[mandelbrotset.xyz](mandelbrotset.xyz)
+https://mandelbrotset.xyz/ 
 
 ## Installation
 
