@@ -27,9 +27,7 @@ import Library from "./components/Library";
 
 import { decodeColors, encodeColors } from "./utilities/colors";
 
-const DEFAULT_MAX_ITERATIONS = 20;
-
-
+const DEFAULT_MAX_ITERATIONS = 60;
 
 function App() {
   // URL state
@@ -56,19 +54,18 @@ function App() {
       return { start, middle, end };
     } else {
       return {
-        start: { r: 35, g: 44, b: 51, hex: "#232C33" },
-        middle: { r: 219, g: 62, b: 0, hex: "#db3e00" },
-        end: { r: 83, g: 0, b: 235, hex: "#5300eb" },
+        start: { r: 44, g: 0, b: 30, hex: "#2C001E" },
+        middle: { r: 233, g: 84, b: 32, hex: "#E95420" },
+        end: { r: 255, g: 255, b: 255, hex: "#FFFFFF" },
       };
     }
   });
-
 
   // Map state
   const mapRef = useRef();
   const [viewState, setViewState] = useState({
     // Initialize state from URL parameters or use default values
-    longitude: parseFloat(searchParams.get("x")) || 0,
+    longitude: parseFloat(searchParams.get("x")) || -0.45,
     latitude: parseFloat(searchParams.get("y")) || 0,
     zoom: parseFloat(searchParams.get("z")) || 7,
     minZoom: 2,
@@ -168,7 +165,7 @@ function App() {
     // Parse the parameters from the URL query
     const newViewState = {
       latitude: parseFloat(queryParams.get("y")) || 0,
-      longitude: parseFloat(queryParams.get("x")) || 0,
+      longitude: parseFloat(queryParams.get("x")) || -0.45,
       zoom: parseFloat(queryParams.get("z")) || 7,
       minZoom: 2,
       maxZoom: Infinity,
