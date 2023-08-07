@@ -20,6 +20,22 @@ const gradientFunctions = [
     label: "Pillar maker",
     name: "pillarMaker",
   },
+  {
+    label: "Log",
+    name: "log",
+  },
+  {
+    label: "Square root",
+    name: "sqrt",
+  },
+  {
+    label: "Exponential",
+    name: "exponential",
+  },
+  {
+    label: "Random palette",
+    name: "randomPalette",
+  },
 ];
 
 const GradientStyler = ({
@@ -89,7 +105,9 @@ const GradientStyler = ({
             {showBigPicker ? (
               <Button onClick={() => setShowBigPicker(false)}>Show less</Button>
             ) : (
-              <Button onClick={() => setShowBigPicker(true)}>More colors...</Button>
+              <Button onClick={() => setShowBigPicker(true)}>
+                More colors...
+              </Button>
             )}
             {showBigPicker ? (
               <ChromePicker

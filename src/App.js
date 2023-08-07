@@ -38,7 +38,7 @@ function App() {
   const navigate = useNavigate();
   const location = useLocation();
   const [showAlert, setShowAlert] = useState(false);
-  const [autoScaleMaxiterations, setAutoScaleMaxIterations] = useState(true);
+  const [autoScaleMaxiterations, setAutoScaleMaxIterations] = useState(false);
   // Styling state
   const [maxIterations, setMaxIterations] = useState(
     // Initialize maxIterations state from URL parameters or use default values
@@ -152,7 +152,7 @@ function App() {
   // as zoom changes, auto scale max iterations
   useEffect(() => {
     if (autoScaleMaxiterations) {
-      const newMaxIterations = Math.floor(20 + viewState.zoom ** 2.5);
+      const newMaxIterations = Math.floor(20 + viewState.zoom ** 2);
       setMaxIterations(newMaxIterations);
     }
   }, [viewState.zoom, autoScaleMaxiterations]);
