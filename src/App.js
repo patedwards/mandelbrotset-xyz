@@ -27,7 +27,7 @@ import Library from "./components/Library";
 
 import { decodeColors, encodeColors } from "./utilities/colors";
 
-const DEFAULT_MAX_ITERATIONS = 100;
+const DEFAULT_MAX_ITERATIONS = 20;
 
 
 
@@ -69,7 +69,7 @@ function App() {
     // Initialize state from URL parameters or use default values
     longitude: parseFloat(searchParams.get("x")) || 0,
     latitude: parseFloat(searchParams.get("y")) || 0,
-    zoom: parseFloat(searchParams.get("z")) || 2,
+    zoom: parseFloat(searchParams.get("z")) || 7,
     minZoom: 2,
     maxZoom: Infinity,
     bearing: 0,
@@ -160,7 +160,7 @@ function App() {
     const newViewState = {
       latitude: parseFloat(queryParams.get("y")) || 0,
       longitude: parseFloat(queryParams.get("x")) || 0,
-      zoom: parseFloat(queryParams.get("z")) || 2,
+      zoom: parseFloat(queryParams.get("z")) || 7,
       minZoom: 2,
       maxZoom: Infinity,
       bearing: 0,
