@@ -44,11 +44,13 @@ const VGA_PALETTE = [
 const gradientFunctions = {
   // Gradient functions that incorporate the getColor logic
   standard: (x, y, iterations, maxIterations, colors) => {
+    if (iterations === -1) return [0, 0, 0]; // Black for points inside the Mandelbrot set
     let value = iterations / maxIterations;
     return getColor(value, colors.start, colors.middle, colors.end);
   },
 
   niceGradient: (x, y, iterations, maxIterations, colors) => {
+    if (iterations === -1) return [35, 44, 51]// [0, 0, 0]; // Black for points inside the Mandelbrot set
     let value =
       (Math.sin((iterations / maxIterations) * Math.PI - Math.PI / 2) + 1) / 2;
     return getColor(value, colors.start, colors.middle, colors.end, 0, 1);
