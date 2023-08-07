@@ -38,6 +38,7 @@ function App() {
   const navigate = useNavigate();
   const location = useLocation();
   const [showAlert, setShowAlert] = useState(false);
+  const [autoScaleMaxiterations, setAutoScaleMaxIterations] = useState(true);
   // Styling state
   const [maxIterations, setMaxIterations] = useState(
     // Initialize maxIterations state from URL parameters or use default values
@@ -147,6 +148,14 @@ function App() {
       setShowAlert(false);
     }, 3000);
   };
+
+  // as zoom changes, auto scale max iterations
+  useEffect(() => {
+    if (autoScaleMaxiterations) {
+      const newMaxIterations = Math.floor(20 + viewState.zoom ** 2.5);
+      setMaxIterations(newMaxIterations);
+    }
+  }, [viewState.zoom, autoScaleMaxiterations]);
 
   // This effect runs when the URL changes, and updates the state accordingly (if the state has not already been updated from the URL)
   useEffect(() => {
