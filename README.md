@@ -8,6 +8,8 @@ This project visualizes the Mandelbrot set using the TileLayer and BitmapLayer f
 - Interactive Exploration: Pan and zoom to explore various parts of the set.
 - Color Gradients: Utilize different gradient functions and color schemes to personalize the visualization.
 - Efficient Tiling: Only render the parts of the image that are in view, leading to a smoother user experience.
+- Save images to a library to come back to later
+- URLs contain the full state required to generate the image, meaning images can be shared via URL
 
 # Where can I use it?
 
