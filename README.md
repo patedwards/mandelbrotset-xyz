@@ -29,8 +29,12 @@ Run `npm install`
 3. Explore the Mandelbrot set!
 
 ## Todos
-[ ] add favorite colors to the color picker saved in localStorage
+In progress:
 [ ] make the x,y and z relate to position in complex space, not web mercator
+
+---
+Todo:
+[ ] add favorite colors to the color picker saved in localStorage
 [ ] restore the x,y,z form setter
 [ ] BUG: when the library is open, console is reporting Maximum update depth exceeded.
 [ ] sync with a python export:

@@ -70,8 +70,6 @@ export const createTileLayer = ({
                 y,
                 z,
                 maxIterations,
-                colors,
-                gradientFunction
             );
             const { ctx, imageData } = createTileImage(256, 256);
             convertDataToPixels(data, imageData, (x, y, iterations) =>

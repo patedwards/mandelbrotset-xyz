@@ -24,3 +24,13 @@ export const gradientFunctions = {
   pillarMaker: (x, y, iteration, maxIterations) =>
     1 -  (iteration / maxIterations - Math.log2(Math.log2(x * x + y * y)))
 };
+
+export const zToLatLon = z => {
+  // The map will cover -1 to 1 in both dimensions
+  return { longitude: 180 * z.x, latitude: 90 * z.y }
+}
+
+export const latLongToZ = ({ latitude, longitude }) => {
+  // The map will cover -1 to 1 in both dimensions
+  return { x: longitude/180, y: latitude/90 }
+}
