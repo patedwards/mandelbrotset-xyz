@@ -15,8 +15,6 @@ export const taskNames = {
 
 const Controls = ({
   activeTask,
-  setZActivity,
-  setZActivityFormSubmit,
   parametersActivity,
   setParametersFormSubmit,
   colors,
@@ -49,7 +47,7 @@ const Controls = ({
         opacity: 1,
       }}
     >
-      <Stack spacing={2}>
+      <Stack spacing={0}>
         {activeTask === taskNames.styleSetter ? (
           <GradientStyler {...{ colors, setColors, setGradientFunction }} />
         ) : null}
@@ -69,6 +67,7 @@ const Controls = ({
             color="primary"
             startIcon={<CloseIcon />}
             onClick={handleCloseControls}
+            size="small"
           >
             Close
           </Button>

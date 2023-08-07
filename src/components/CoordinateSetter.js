@@ -1,4 +1,4 @@
-import { Stack, TextField, Box, IconButton } from "@mui/material";
+import { Stack, TextField, Box, IconButton, Typography } from "@mui/material";
 import { useState, useEffect } from "react";
 import KeyboardReturnIcon from '@mui/icons-material/KeyboardReturn';
 
@@ -11,13 +11,16 @@ const CoordinateSetter = ({ tools, formSubmit }) => {
     }, [tools]);
 
     return (
-        <Box sx={{ zIndex: 999, backgroundColor: "white", padding: 2 }}>
+        <Box sx={{ zIndex: 999, backgroundColor: "white", padding: 1 }}>
             <Stack direction="row" spacing={1} alignItems="center">
                 {tools.map(tool => (
+                    <>
+                    <Typography variant="body2">{tool.label}</Typography>
                     <TextField
                         key={tool.label}
-                        label={tool.label}
                         size="small"
+                        variant="standard"
+                        sx={{width: 50}}
                         value={activeField === tool.label ? formState[tool.label] : tool.initialValue}
                         onFocus={() => setActiveField(tool.label)}
                         onBlur={() => setActiveField(null)}
@@ -26,6 +29,7 @@ const CoordinateSetter = ({ tools, formSubmit }) => {
                         inputProps={tool.inputProps}
                         InputLabelProps={{ shrink: true }}
                     />
+                    </>
                 ))}
                 <IconButton onClick={() => formSubmit(formState)}>
                     <KeyboardReturnIcon />

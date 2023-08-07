@@ -13,6 +13,8 @@ import SnapIcon from "@mui/icons-material/Save";
 import EditParametersIcon from "@mui/icons-material/Functions";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import LibraryIcon from "@mui/icons-material/Collections";
+import Alert from "@mui/material/Alert";
+import Snackbar from "@mui/material/Snackbar";
 
 import theme from "./Theme";
 
@@ -27,13 +29,15 @@ import { decodeColors, encodeColors } from "./utilities/colors";
 
 const DEFAULT_MAX_ITERATIONS = 100;
 
+
+
 function App() {
   // URL state
   const [searchParams, setSearchParams] = useSearchParams();
   const [getStateFromUrl, setStateFromUrl] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
-
+  const [showAlert, setShowAlert] = useState(false);
   // Styling state
   const [maxIterations, setMaxIterations] = useState(
     // Initialize maxIterations state from URL parameters or use default values
@@ -57,6 +61,7 @@ function App() {
       };
     }
   });
+
 
   // Map state
   const mapRef = useRef();
@@ -133,6 +138,14 @@ function App() {
     if (mapRef.current) {
       mapRef.current.captureThumbnail();
     }
+
+    // Show the alert
+    setShowAlert(true);
+
+    // Auto-hide the alert after 3 seconds
+    setTimeout(() => {
+      setShowAlert(false);
+    }, 3000);
   };
 
   // This effect runs when the URL changes, and updates the state accordingly (if the state has not already been updated from the URL)
@@ -186,12 +199,18 @@ function App() {
   const tools = {
     parametersToggle: {
       label: "parameters",
-      onClick: () => setActiveTask(taskNames.parametersSetter),
+      onClick: () => {
+        setActiveTask(taskNames.parametersSetter);
+        setShowControls(!showControls);
+      },
       icon: EditParametersIcon,
     },
     styleToggle: {
       label: "style",
-      onClick: () => setActiveTask(taskNames.styleSetter),
+      onClick: () => {
+        setActiveTask(taskNames.styleSetter);
+        setShowControls(!showControls);
+      },
       icon: PaletteIcon,
     },
     captureButton: {
@@ -240,6 +259,24 @@ function App() {
         overflow: "hidden", // to avoid scrolling of the main container
       }}
     >
+      <Snackbar
+        open={showAlert}
+        autoHideDuration={3000}
+        onClose={() => setShowAlert(false)}
+        anchorOrigin={{
+          vertical: "top",
+          // make it below the app bar on small screens
+          horizontal: isScreenWidthLessThan400 ? "center" : "left",
+        }}
+      >
+        <Alert
+          severity="success"
+          variant="filled"
+          onClose={() => setShowAlert(false)}
+        >
+          Image saved to library
+        </Alert>
+      </Snackbar>
       {/* Render the TaskDrawer */}
       <TaskDrawer editTools={editTools} />
 
