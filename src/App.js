@@ -25,18 +25,25 @@ import Library from "./components/Library";
 
 import { decodeColors, encodeColors } from "./utilities/colors";
 
+import { useShowAlert, useViewState, useColors } from "./hooks/state";
+
 const DEFAULT_MAX_ITERATIONS = 60;
 
 function App() {
+  // App state
   const theme = useTheme();
+  const [getStateFromUrl, setStateFromUrl] = useState(true);
+
   // URL state
   const [searchParams, setSearchParams] = useSearchParams();
-  const [getStateFromUrl, setStateFromUrl] = useState(true);
   const navigate = useNavigate();
   const location = useLocation();
-  const [showAlert, setShowAlert] = useState(false);
+
+  // Alert state
+  const [showAlert, setShowAlert] = useShowAlert();
   const [glTime, setGlTime] = useState(false);
   const [autoScaleMaxiterations, setAutoScaleMaxIterations] = useState(false);
+
   // Styling state
   const [maxIterations, setMaxIterations] = useState(
     // Initialize maxIterations state from URL parameters or use default values
@@ -46,7 +53,8 @@ function App() {
     // Initialize gradientFunction state from URL parameters or use default values
     searchParams.get("gradientFunction") || "standard"
   );
-  const [colors, setColors] = useState(() => {
+  const [viewState, setViewState] = useViewState();
+  /*const [colors, setColors] = useState(() => {
     // Initialize colors state from URL parameters or use default values
     const colorParam = searchParams.get("colors");
     if (colorParam) {
@@ -60,26 +68,18 @@ function App() {
       };
     }
   });
+  */
+  const [colors, setColors] = useColors();
 
   // Map state
   const mapRef = useRef();
-  const [viewState, setViewState] = useState({
-    // Initialize state from URL parameters or use default values
-    longitude: parseFloat(searchParams.get("x")) || -0.45,
-    latitude: parseFloat(searchParams.get("y")) || 0,
-    zoom: parseFloat(searchParams.get("z")) || 7,
-    minZoom: 2,
-    maxZoom: Infinity,
-    bearing: 0,
-    pitch: 0,
-  });
 
   // Component toggling
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [showControls, setShowControls] = useState(false);
 
   // Media queries
-  const isScreenWidthLessThan400 = useMediaQuery("(max-width:400px)");
+  const isMobile = useMediaQuery("(max-width:400px)");
 
   // Event handlers
   const handleCloseControls = () => setShowControls(false);
@@ -160,30 +160,6 @@ function App() {
     }
   }, [viewState.zoom, autoScaleMaxiterations]);
 
-  // This effect runs when the URL changes, and updates the state accordingly (if the state has not already been updated from the URL)
-  useEffect(() => {
-    if (!getStateFromUrl) {
-      return;
-    }
-
-    const queryParams = new URLSearchParams(location.search);
-
-    // Parse the parameters from the URL query
-    const newViewState = {
-      latitude: parseFloat(queryParams.get("y")) || 0,
-      longitude: parseFloat(queryParams.get("x")) || -0.45,
-      zoom: parseFloat(queryParams.get("z")) || 7,
-      minZoom: 2,
-      maxZoom: Infinity,
-      bearing: 0,
-      pitch: 0,
-    };
-    const newMaxIterations = parseInt(queryParams.get("maxIterations"));
-
-    setViewState(newViewState);
-    setMaxIterations(newMaxIterations || DEFAULT_MAX_ITERATIONS);
-    setStateFromUrl(false);
-  }, [location.search, getStateFromUrl]);
 
   // Update URL when state changes
   useEffect(() => {
@@ -245,7 +221,7 @@ function App() {
     <div
       style={{
         display: "flex",
-        flexDirection: isScreenWidthLessThan400 ? "column" : "row",
+        flexDirection: isMobile ? "column" : "row",
         alignItems: "center",
         height: "100vh",
         width: "100vw",
@@ -259,7 +235,7 @@ function App() {
         onClose={() => setShowAlert(false)}
         anchorOrigin={{
           vertical: "top",
-          horizontal: isScreenWidthLessThan400 ? "center" : "center",
+          horizontal: isMobile ? "center" : "center",
         }}
         style={{
           top: theme.structure.appBarHeight, // Assuming the appBarHeight is the exact height of the AppBar

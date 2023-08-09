@@ -172,6 +172,7 @@ export const createTileLayer = ({
   colors,
   gradientFunction,
 }) => {
+  console.log("createTileLayer");
   return new TileLayer({
     minZoom: 0,
     maxZoom: Infinity,

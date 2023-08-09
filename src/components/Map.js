@@ -9,7 +9,8 @@ import {
 import DeckGL from "@deck.gl/react";
 
 import { useStore } from "../hooks/store";
-import { createTileLayer } from "../utilities/deck";
+import { useTileLayer } from "../hooks/state";
+//import { createTileLayer } from "../utilities/deck";
 
 const Map = forwardRef(
   (
@@ -17,7 +18,7 @@ const Map = forwardRef(
     ref
   ) => {
     const { addLibraryItem } = useStore();
-    const layer = createTileLayer({ maxIterations, colors, gradientFunction });
+    const layer = useTileLayer({maxIterations, colors, gradientFunction});
     
 
     const deckRef = useRef();
