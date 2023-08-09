@@ -10,7 +10,6 @@ import {
 import { ThemeProvider } from "@mui/material/styles";
 import PaletteIcon from "@mui/icons-material/Palette";
 import SnapIcon from "@mui/icons-material/Save";
-import EditParametersIcon from "@mui/icons-material/Functions";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import LibraryIcon from "@mui/icons-material/Collections";
 import Alert from "@mui/material/Alert";
@@ -22,7 +21,6 @@ import Map from "./components/Map";
 import AppBar from "./components/AppBar";
 import TaskDrawer from "./components/TaskDrawer";
 import Controls from "./components/Controls";
-import { taskNames } from "./components/Controls";
 import Library from "./components/Library";
 
 import { decodeColors, encodeColors } from "./utilities/colors";
@@ -36,6 +34,7 @@ function App() {
   const navigate = useNavigate();
   const location = useLocation();
   const [showAlert, setShowAlert] = useState(false);
+  const [glTime, setGlTime] = useState(false);
   const [autoScaleMaxiterations, setAutoScaleMaxIterations] = useState(false);
   // Styling state
   const [maxIterations, setMaxIterations] = useState(
@@ -144,6 +143,15 @@ function App() {
       setShowAlert(false);
     }, 3000);
   };
+
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+
+    // Reset when component is unmounted
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, []);
 
   // as zoom changes, auto scale max iterations
   useEffect(() => {
@@ -284,7 +292,10 @@ function App() {
             setColors,
             setGradientFunction,
             handleCloseControls,
-            autoScaleMaxiterations, setAutoScaleMaxIterations,
+            autoScaleMaxiterations,
+            setAutoScaleMaxIterations,
+            setGlTime,
+            setGlTime,
           }}
         />
       )}
@@ -299,6 +310,7 @@ function App() {
             gradientFunction,
             setViewState,
             initialViewState: viewState,
+            glTime,
           }}
         />
       </div>

@@ -44,20 +44,20 @@ const VGA_PALETTE = [
 const gradientFunctions = {
   // Gradient functions that incorporate the getColor logic
   standard: (x, y, iterations, maxIterations, colors) => {
-    if (iterations === -1) return [35, 44, 51] // Black for points inside the Mandelbrot set
+    if (iterations === -1) return [35, 44, 51]; // Black for points inside the Mandelbrot set
     let value = iterations / maxIterations;
     return getColor(value, colors.start, colors.middle, colors.end);
   },
 
   niceGradient: (x, y, iterations, maxIterations, colors) => {
-    if (iterations === -1) return [35, 44, 51] // Black for points inside the Mandelbrot set
+    if (iterations === -1) return [35, 44, 51]; // Black for points inside the Mandelbrot set
     let value =
       (Math.sin((iterations / maxIterations) * Math.PI - Math.PI / 2) + 1) / 2;
     return getColor(value, colors.start, colors.middle, colors.end, 0, 1);
   },
 
   log: (x, y, iterations, maxIterations, colors) => {
-    if (iterations === -1) return [35, 44, 51] // Black for points inside the Mandelbrot set
+    if (iterations === -1) return [35, 44, 51]; // Black for points inside the Mandelbrot set
     let value = Math.log(iterations + 1) / Math.log(maxIterations + 1);
     return getColor(value, colors.start, colors.middle, colors.end, 0, 1);
   },
@@ -69,13 +69,13 @@ const gradientFunctions = {
   },
 
   sqrt: (x, y, iterations, maxIterations, colors) => {
-    if (iterations === -1) return [35, 44, 51] // Black for points inside the Mandelbrot set
+    if (iterations === -1) return [35, 44, 51]; // Black for points inside the Mandelbrot set
     let value = Math.sqrt(iterations / maxIterations);
     return getColor(value, colors.start, colors.middle, colors.end, 0, 1);
   },
 
   exponential: (x, y, iterations, maxIterations, colors) => {
-  if (iterations === -1) return [35, 44, 51] // Black for points inside the Mandelbrot set{
+    if (iterations === -1) return [35, 44, 51]; // Black for points inside the Mandelbrot set{
     let value = Math.pow(iterations / maxIterations, 2);
     return getColor(value, colors.start, colors.middle, colors.end);
   },
@@ -121,29 +121,35 @@ const mandelbrotPixelTransform = (
 // Helper function to interpolate between two values
 const lerp = (start, end, t) => start * (1 - t) + end * t;
 
-const getColor = (value, startColor, middleColor, endColor, minValue=0, maxValue=1) => {
-    // Normalize the value to range [0, 1]
-    value = (value - minValue) / (maxValue - minValue);
-    
-    let color1, color2;
-    
-    if (value < 0.5) {
-      color1 = startColor;
-      color2 = middleColor;
-      value *= 2; // normalize the value for interpolation
-    } else {
-      color1 = middleColor;
-      color2 = endColor;
-      value = 2 * value - 1; // normalize the value for interpolation
-    }
-  
-    let r = Math.round(lerp(color1.r, color2.r, value));
-    let g = Math.round(lerp(color1.g, color2.g, value));
-    let b = Math.round(lerp(color1.b, color2.b, value));
-  
-    return [r, g, b];
-  };
-  
+const getColor = (
+  value,
+  startColor,
+  middleColor,
+  endColor,
+  minValue = 0,
+  maxValue = 1
+) => {
+  // Normalize the value to range [0, 1]
+  value = (value - minValue) / (maxValue - minValue);
+
+  let color1, color2;
+
+  if (value < 0.5) {
+    color1 = startColor;
+    color2 = middleColor;
+    value *= 2; // normalize the value for interpolation
+  } else {
+    color1 = middleColor;
+    color2 = endColor;
+    value = 2 * value - 1; // normalize the value for interpolation
+  }
+
+  let r = Math.round(lerp(color1.r, color2.r, value));
+  let g = Math.round(lerp(color1.g, color2.g, value));
+  let b = Math.round(lerp(color1.b, color2.b, value));
+
+  return [r, g, b];
+};
 
 const convertDataToPixels = (data, imageData, pixelTransform) => {
   // Set the pixel data of the ImageData object
@@ -167,7 +173,6 @@ export const createTileLayer = ({
   gradientFunction,
 }) => {
   return new TileLayer({
-    // https://wiki.openstreetmap.org/wiki/Slippy_map_tilenames#Tile_servers
     minZoom: 0,
     maxZoom: Infinity,
     tileSize: 256,

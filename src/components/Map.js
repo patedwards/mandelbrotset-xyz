@@ -18,6 +18,7 @@ const Map = forwardRef(
   ) => {
     const { addLibraryItem } = useStore();
     const layer = createTileLayer({ maxIterations, colors, gradientFunction });
+    
 
     const deckRef = useRef();
 
@@ -107,6 +108,7 @@ const Map = forwardRef(
         // Update the library
         const newItem = { imageLocation, viewState: initialViewState, maxIterations, colors, gradientFunction };
         addLibraryItem(newItem);
+        console.log("deckRef", deckRef.current, deck);
 
         setCaptureThumbnail(false);
       }

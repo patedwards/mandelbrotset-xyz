@@ -96,7 +96,14 @@ export const ColorStyler = ({ colors, setColors }) => {
   };
 
   return (
-    <Box sx={{ zIndex: 999, backgroundColor: "white", padding: 1 }}>
+    <Box
+      sx={{
+        zIndex: 999,
+        backgroundColor: "white",
+        padding: 1,
+        
+      }}
+    >
       <Stack direction="column" spacing={1} alignItems="center">
         <Stack
           direction="row"
@@ -135,11 +142,12 @@ export const ColorStyler = ({ colors, setColors }) => {
               colors={[...defaultColors, ...favorites]}
               color={colors[chosen]}
               onChange={handleColorChange}
+              maxWidth="80%"
             />
             <Stack
               direction="row"
               alignItems="center"
-              spacing={2}
+              spacing={0}
               justifyContent="center"
             >
               <IconButton
@@ -167,7 +175,7 @@ export const ColorStyler = ({ colors, setColors }) => {
                 triangle="hide"
                 color={colors[chosen]}
                 onChange={handleColorChange}
-                width={"100%"}
+                maxWidth="80%"
               />
             )}
           </>
