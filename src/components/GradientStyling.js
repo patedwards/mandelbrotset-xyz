@@ -1,3 +1,4 @@
+import React from "react";
 import SquareIcon from "@mui/icons-material/Square";
 import { Stack, Box, IconButton } from "@mui/material";
 import { useState, useEffect } from "react";
@@ -65,7 +66,10 @@ export const ColorStyler = ({ colors, setColors }) => {
   ];
 
   const [favorites, setFavorites] = useState(() => {
-    return JSON.parse(localStorage.getItem("colorFavorites") || "[]");
+    const loadedFavorites = JSON.parse(
+      localStorage.getItem("colorFavorites", "[]")
+    );
+    return loadedFavorites ? loadedFavorites : defaultColors;
   });
 
   useEffect(() => {
@@ -100,7 +104,6 @@ export const ColorStyler = ({ colors, setColors }) => {
         zIndex: 999,
         backgroundColor: "white",
         padding: 1,
-        
       }}
     >
       <Stack direction="column" spacing={1} alignItems="center">
@@ -111,8 +114,9 @@ export const ColorStyler = ({ colors, setColors }) => {
           justifyContent="center"
         >
           {["start", "middle", "end"].map((key) => (
-            <>
+            <React.Fragment key={key}>
               <IconButton
+                key={key + "-icon"}
                 onClick={() => setChosen(chosen === key ? null : key)}
                 style={{
                   backgroundColor: chosen === key ? "#eee" : "transparent",
@@ -122,6 +126,7 @@ export const ColorStyler = ({ colors, setColors }) => {
               </IconButton>
               {/* Input Field to accept hex input */}
               <TextField
+                key={key}
                 size="small"
                 variant="standard"
                 value={colors[key].hex}
@@ -131,14 +136,14 @@ export const ColorStyler = ({ colors, setColors }) => {
                 sx={{ width: "80px" }} // Control the width here
               />
               {key !== "end" && <ArrowForwardIcon color="#fefefe" />}
-            </>
+            </React.Fragment>
           ))}
         </Stack>
         {chosen && (
           <>
             <GithubPicker
               triangle="hide"
-              colors={[...defaultColors, ...favorites]}
+              colors={favorites}
               color={colors[chosen]}
               onChange={handleColorChange}
               maxWidth="80%"
@@ -186,9 +191,11 @@ export const ColorStyler = ({ colors, setColors }) => {
 
 export const GradientFunctionSelector = ({ setGradientFunction }) => {
   return (
-    <Selector
-      items={gradientFunctions}
-      handleSelection={(item) => setGradientFunction(item.name)}
-    />
+    <Box>
+      <Selector
+        items={gradientFunctions}
+        handleSelection={(item) => setGradientFunction(item.name)}
+      />
+    </Box>
   );
 };

@@ -30,7 +30,8 @@ const ImageViewerDialog = ({
   const [selectedSnap, setSelectedSnap] = useState(null);
   const [itemName, setItemName] = useState("");
 
-  const { library, removeLibraryItem, updateLibraryItem, syncLibrary } = useStore();
+  const { library, removeLibraryItem, updateLibraryItem, syncLibrary } =
+    useStore();
 
   useEffect(() => {
     if (libraryOpen) {
@@ -45,7 +46,6 @@ const ImageViewerDialog = ({
     gradientFunction,
   }) => {
     // Set the viewState when a card is clicked
-    console.log("handleCardClick", maxIterations);
     handleLibrarySelect({
       newViewState: viewState,
       newColors: colors,

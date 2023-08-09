@@ -95,7 +95,6 @@ export const createTileLayerGL = ({
     },
     async getTileData({ bbox: { west, east, south, north }, zoom }) {
       const [minX, maxX, minY, maxY] = [west, east, south, north];
-      console.log(minX, maxX, minY, maxY, zoom);
 
       const geometry = new PlaneGeometry(2, 2);
 

@@ -14,8 +14,8 @@ import useMediaQuery from "@mui/material/useMediaQuery";
 import LibraryIcon from "@mui/icons-material/Collections";
 import Alert from "@mui/material/Alert";
 import Snackbar from "@mui/material/Snackbar";
-
-import theme from "./Theme";
+import { useTheme } from "@mui/material/styles";
+import themeSpec from "./Theme";
 
 import Map from "./components/Map";
 import AppBar from "./components/AppBar";
@@ -28,6 +28,7 @@ import { decodeColors, encodeColors } from "./utilities/colors";
 const DEFAULT_MAX_ITERATIONS = 60;
 
 function App() {
+  const theme = useTheme();
   // URL state
   const [searchParams, setSearchParams] = useSearchParams();
   const [getStateFromUrl, setStateFromUrl] = useState(true);
@@ -120,8 +121,6 @@ function App() {
       maxIterations: newMaxIterations,
     }).toString();
 
-    console.log("updating...", maxIterations, newMaxIterations);
-
     // Navigate to the new URL
     navigate(`/?${newQuery}`, { replace: true });
     setColors(newColors);
@@ -206,19 +205,19 @@ function App() {
   // Available tools
   const tools = {
     styleToggle: {
-      label: "style",
+      label: "Style",
       onClick: () => {
         setShowControls(!showControls);
       },
       icon: PaletteIcon,
     },
     captureButton: {
-      label: "capture-map",
+      label: "Save",
       onClick: handleButtonClick,
       icon: SnapIcon,
     },
     openLibraryButton: {
-      label: "open-image-in-new-tab",
+      label: "Image Library",
       onClick: () => setLibraryOpen(true),
       icon: LibraryIcon,
     },
@@ -253,14 +252,17 @@ function App() {
         overflow: "hidden", // to avoid scrolling of the main container
       }}
     >
+      <AppBar />
       <Snackbar
         open={showAlert}
         autoHideDuration={3000}
         onClose={() => setShowAlert(false)}
         anchorOrigin={{
           vertical: "top",
-          // make it below the app bar on small screens
-          horizontal: isScreenWidthLessThan400 ? "center" : "left",
+          horizontal: isScreenWidthLessThan400 ? "center" : "center",
+        }}
+        style={{
+          top: theme.structure.appBarHeight, // Assuming the appBarHeight is the exact height of the AppBar
         }}
       >
         <Alert
@@ -271,13 +273,8 @@ function App() {
           Image saved to library
         </Alert>
       </Snackbar>
-      {/* Render the TaskDrawer */}
       <TaskDrawer editTools={editTools} />
 
-      {/* Render the AppBar */}
-      <AppBar />
-
-      {/* Render the Controls when active */}
       {showControls && (
         <Controls
           {...{
@@ -289,7 +286,8 @@ function App() {
             handleCloseControls,
             autoScaleMaxiterations,
             setGlTime,
-            maxIterations, setMaxIterations
+            maxIterations,
+            setMaxIterations,
           }}
         />
       )}
@@ -322,7 +320,7 @@ function App() {
 
 const RootApp = () => {
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeProvider theme={themeSpec}>
       <Router>
         <App />
       </Router>

@@ -108,7 +108,6 @@ const Map = forwardRef(
         // Update the library
         const newItem = { imageLocation, viewState: initialViewState, maxIterations, colors, gradientFunction };
         addLibraryItem(newItem);
-        console.log("deckRef", deckRef.current, deck);
 
         setCaptureThumbnail(false);
       }

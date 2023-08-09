@@ -2,40 +2,73 @@ import * as React from "react";
 import MuiDrawer from "@mui/material/Drawer";
 import MuiAppBar from "@mui/material/AppBar";
 import { Toolbar } from "@mui/material";
+import Tooltip from "@mui/material/Tooltip";
 import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import Paper from "@mui/material/Paper";
 
-import { useTheme } from "@mui/material/styles";  // Import the useTheme hook
+import { useTheme } from "@mui/material/styles"; // Import the useTheme hook
 
 const Tool = (tool) => {
   const theme = useTheme();
 
-  return (
-    <ListItem key={tool.label} disablePadding>
-      <ListItemButton
-        {...tool}
+  const isMobile = useMediaQuery("(max-width:600px)");
+
+  // Tool content for mobile and desktop
+  const toolContent = (
+    <>
+      <ListItemIcon
         sx={{
-          width: "auto",
-          height: 48,  // Set a definite height
-          display: 'flex',  // Ensure this is a flex container
-          justifyContent: "center",  // Center the content horizontally
-          alignItems: 'center',  // Center the content vertically
-          padding: '0 0.75rem',  // Adjust padding for better centering
+          minWidth: 0,
+          justifyContent: "center",
+          color: theme.palette.primary.main,
         }}
       >
-        <ListItemIcon
+        <tool.icon />
+      </ListItemIcon>
+      {isMobile && <div>{tool.label}</div>} {/* Render label only on mobile */}
+    </>
+  );
+
+  return (
+    <ListItem key={tool.label} disablePadding>
+      {isMobile ? (
+        <ListItemButton
+          {...tool}
           sx={{
-            minWidth: 0,
+            width: "auto",
+            height: 48,
+            display: "flex",
+            flexDirection: "column", // Vertically stack the icon and label for mobile
             justifyContent: "center",
-            color: theme.palette.primary.main,
+            alignItems: "center",
+            padding: "0 0.75rem",
           }}
         >
-          <tool.icon />
-        </ListItemIcon>
-      </ListItemButton>
+          {toolContent}
+        </ListItemButton>
+      ) : (
+        <Tooltip
+          title={tool.label}
+          placement="right"
+        >
+          <ListItemButton
+            {...tool}
+            sx={{
+              width: "auto",
+              height: 48,
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              padding: "0 0.75rem",
+            }}
+          >
+            {toolContent}
+          </ListItemButton>
+        </Tooltip>
+      )}
     </ListItem>
   );
 };
@@ -50,7 +83,10 @@ export default function TaskDrawer({ editTools }) {
         variant="permanent"
         anchor={isMobileScreen ? "bottom" : "left"}
         open={true}
-        PaperProps={{ elevation: 4, style: { overflowX: "hidden", marginTop: 64 } }} // Added marginTop to make space for the AppBar
+        PaperProps={{
+          elevation: 4,
+          style: { overflowX: "hidden", marginTop: 64 },
+        }} // Added marginTop to make space for the AppBar
       >
         <Paper
           sx={{
@@ -60,8 +96,8 @@ export default function TaskDrawer({ editTools }) {
             flexDirection: isMobileScreen ? "row" : "column",
             width: isMobileScreen ? "100%" : 48,
             height: isMobileScreen ? 48 : "100%",
-            alignItems: isMobileScreen ? "center" : "initial",  // Changed to always center vertically
-            justifyContent: isMobileScreen ? "space-between" : "initial",  // Centered on desktop
+            alignItems: isMobileScreen ? "center" : "initial", // Changed to always center vertically
+            justifyContent: isMobileScreen ? "space-between" : "initial", // Centered on desktop
             padding: 0,
           }}
         >

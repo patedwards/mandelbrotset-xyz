@@ -181,7 +181,7 @@ const Controls = ({
         maxHeight: "80%",
         overflow: "hidden",
         position: "fixed",
-        zIndex: 10000,
+        zIndex: 1000,
         left: 60,
         top: 72,
         bottom: null,

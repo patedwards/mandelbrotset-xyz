@@ -15,7 +15,6 @@ export const encodeColors = ({ start, middle, end }) => {
 };
 
 export const decodeColors = (colors) => {
-  console.log("decodeColors", colors);
   // the colors parameter is a string like "232C33-db3e00-5300eb"
   const [start, middle, end] = colors.split("-");
   return {

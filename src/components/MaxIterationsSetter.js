@@ -8,7 +8,6 @@ const MaxIterationsSetter = ({
   maxIterations,
   setMaxIterations,
 }) => {
-  console.log(maxIterations);
   const [maxIterationsValue, setMaxIterationsValue] = useState(maxIterations);
 
   return (
