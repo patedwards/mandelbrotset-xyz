@@ -16,12 +16,3 @@ export function evaluateMandelbrot(x0, y0, maxIterations) {
   // idea-1: setting this to 0,0,0 actually makes it look black. Make this toggleable
   return [-1, -1, -1];
 }
-
-export const gradientFunctions = {
-  standard: (x, y, iteration, maxIterations) => iteration/maxIterations, 
-  niceGradient: (x, y, iteration) =>
-    1 - 0.01 * (iteration - Math.log2(Math.log2(x * x + y * y))),
-  pillarMaker: (x, y, iteration, maxIterations) =>
-    1 -  (iteration / maxIterations - Math.log2(Math.log2(x * x + y * y)))
-};
-

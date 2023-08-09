@@ -2,7 +2,6 @@ import SquareIcon from "@mui/icons-material/Square";
 import { Stack, Box, IconButton } from "@mui/material";
 import { useState, useEffect } from "react";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-import Typography from "@mui/material/Typography";
 import { GithubPicker, ChromePicker } from "react-color";
 import Selector from "./Selector";
 import { Button } from "@mui/material";

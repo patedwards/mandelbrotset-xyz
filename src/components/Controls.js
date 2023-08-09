@@ -21,15 +21,14 @@ import { useTheme } from "@mui/material/styles";
 
 const Controls = ({
   parametersActivity,
-  setParametersFormSubmit,
   colors,
   setColors,
   setGradientFunction,
   handleCloseControls,
   autoScaleMaxiterations,
   setAutoScaleMaxIterations,
-  glTime,
-  setGlTime,
+  setMaxIterations,
+  maxIterations,
 }) => {
   const [drawerHeight, setDrawerHeight] = useState("half");
   const isScreenWidthLessThan400 = useMediaQuery("(max-width:600px)");
@@ -50,7 +49,6 @@ const Controls = ({
           width={24}
           height={24}
           mr={1}
-          
         />
       ))}
     </Box>
@@ -136,8 +134,9 @@ const Controls = ({
             <MaxIterationsSetter
               {...{
                 ...parametersActivity,
-                formSubmit: setParametersFormSubmit,
                 disabled: autoScaleMaxiterations,
+                setMaxIterations,
+                maxIterations,
               }}
             />
           </Box>

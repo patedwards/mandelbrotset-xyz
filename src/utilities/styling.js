@@ -1,16 +1,3 @@
-export function getColor(value, startColor, middleColor, endColor) {
-  if (value <= 0.5) {
-    // Interpolate between startColor and middleColor
-    const t = value * 2;
-    const color = interpolateColor(startColor, middleColor, t);
-    return color;
-  } else {
-    // Interpolate between middleColor and endColor
-    const t = (value - 0.5) * 2;
-    return interpolateColor(middleColor, endColor, t);
-  }
-}
-
 // Helper function for interpolating between two colors
 function interpolateColor(startColor, endColor, t) {
   const r = startColor.r + (endColor.r - startColor.r) * t;
@@ -19,26 +6,13 @@ function interpolateColor(startColor, endColor, t) {
   return [r, g, b];
 }
 
-export function getContrastingTextColor(backgroundColor) {
-  // Convert the background color to HSL
-  const hsl = colorToHsl(hexToRgb(backgroundColor));
-
-  // Check the luminance of the background color to determine which
-  // text color to use (black or white)
-  if (hsl[2] > 0.5) {
-    return rgbToHex([0, 0, 0]); // black
-  } else {
-    return rgbToHex([255, 255, 255]); // white
-  }
-}
-
 // Helper function for converting a color from hexadecimal to RGB
 function hexToRgb(hex) {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
   return [
     parseInt(result[1], 16),
     parseInt(result[2], 16),
-    parseInt(result[3], 16)
+    parseInt(result[3], 16),
   ];
 }
 

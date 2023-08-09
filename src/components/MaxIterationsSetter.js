@@ -1,18 +1,15 @@
 import { Stack, TextField, Box, IconButton, Typography } from "@mui/material";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import KeyboardReturnIcon from "@mui/icons-material/KeyboardReturn";
 
-const CoordinateSetter = ({ tools, formSubmit, disabled }) => {
-  const [formState, setFormState] = useState(
-    tools.reduce((a, tool) => ({ ...a, [tool.label]: tool.initialValue }), {})
-  );
-  const [activeField, setActiveField] = useState(null);
-
-  useEffect(() => {
-    setFormState(
-      tools.reduce((a, tool) => ({ ...a, [tool.label]: tool.initialValue }), {})
-    );
-  }, [tools]);
+const MaxIterationsSetter = ({
+  tools,
+  disabled,
+  maxIterations,
+  setMaxIterations,
+}) => {
+  console.log(maxIterations);
+  const [maxIterationsValue, setMaxIterationsValue] = useState(maxIterations);
 
   return (
     <Box
@@ -24,16 +21,22 @@ const CoordinateSetter = ({ tools, formSubmit, disabled }) => {
       }}
     >
       <Stack direction="row" spacing={1} alignItems="center">
-        {tools.map((tool) => (
-          <>
-            <Typography variant="body2">{tool.label}</Typography>
-            <TextField
-              // ... other properties
-              disabled={disabled}
-            />
-          </>
-        ))}
-        <IconButton onClick={() => formSubmit(formState)} disabled={disabled}>
+        <Typography variant="body2">{"Max iterations"}</Typography>
+        <TextField
+          value={maxIterationsValue}
+          disabled={disabled}
+          variant="standard"
+          onChange={(e) => Math.max(0, setMaxIterationsValue(e.target.value))}
+          type="number"
+          inputProps={{
+            min: 0,
+            step: "100",
+          }}
+        />
+        <IconButton
+          onClick={() => setMaxIterations(maxIterationsValue)}
+          disabled={disabled}
+        >
           <KeyboardReturnIcon />
         </IconButton>
       </Stack>
@@ -41,4 +44,4 @@ const CoordinateSetter = ({ tools, formSubmit, disabled }) => {
   );
 };
 
-export default CoordinateSetter;
+export default MaxIterationsSetter;

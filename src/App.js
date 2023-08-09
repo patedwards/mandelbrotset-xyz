@@ -242,10 +242,6 @@ function App() {
     ],
   };
 
-  const setParametersFormSubmit = (formState) => {
-    setMaxIterations(formState["Number of iterations"]);
-  };
-
   return (
     <div
       style={{
@@ -287,15 +283,13 @@ function App() {
           {...{
             parametersActivity,
             setAutoScaleMaxIterations,
-            setParametersFormSubmit,
             colors,
             setColors,
             setGradientFunction,
             handleCloseControls,
             autoScaleMaxiterations,
-            setAutoScaleMaxIterations,
             setGlTime,
-            setGlTime,
+            maxIterations, setMaxIterations
           }}
         />
       )}
