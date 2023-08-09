@@ -76,7 +76,6 @@ function App() {
 
   // Component toggling
   const [libraryOpen, setLibraryOpen] = useState(false);
-  const [activeTask, setActiveTask] = useState(null);
   const [showControls, setShowControls] = useState(false);
 
   // Media queries
@@ -196,25 +195,11 @@ function App() {
     });
   }, [viewState, maxIterations, gradientFunction, colors, setSearchParams]);
 
-  // When a new active task is set, show the controls
-  useEffect(() => {
-    setShowControls(activeTask !== null);
-  }, [activeTask]);
-
   // Available tools
   const tools = {
-    parametersToggle: {
-      label: "parameters",
-      onClick: () => {
-        setActiveTask(taskNames.parametersSetter);
-        setShowControls(!showControls);
-      },
-      icon: EditParametersIcon,
-    },
     styleToggle: {
       label: "style",
       onClick: () => {
-        setActiveTask(taskNames.styleSetter);
         setShowControls(!showControls);
       },
       icon: PaletteIcon,
@@ -233,7 +218,6 @@ function App() {
 
   // Activity configuration
   const editTools = [
-    tools.parametersToggle,
     tools.styleToggle,
     tools.captureButton,
     tools.openLibraryButton,
@@ -293,14 +277,14 @@ function App() {
       {showControls && (
         <Controls
           {...{
-            activeTask,
-            setActiveTask,
             parametersActivity,
+            setAutoScaleMaxIterations,
             setParametersFormSubmit,
             colors,
             setColors,
             setGradientFunction,
             handleCloseControls,
+            autoScaleMaxiterations, setAutoScaleMaxIterations,
           }}
         />
       )}
