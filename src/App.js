@@ -1,147 +1,60 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
-import {
-  BrowserRouter as Router,
-  useLocation,
-  useSearchParams,
-  useNavigate,
-} from "react-router-dom";
+import { BrowserRouter as Router, useSearchParams } from "react-router-dom";
 
-import { ThemeProvider } from "@mui/material/styles";
-import PaletteIcon from "@mui/icons-material/Palette";
-import SnapIcon from "@mui/icons-material/Save";
-import useMediaQuery from "@mui/material/useMediaQuery";
-import LibraryIcon from "@mui/icons-material/Collections";
 import Alert from "@mui/material/Alert";
 import Snackbar from "@mui/material/Snackbar";
-import { useTheme } from "@mui/material/styles";
+import { ThemeProvider, useTheme } from "@mui/material/styles";
 import themeSpec from "./Theme";
 
-import Map from "./components/Map";
 import AppBar from "./components/AppBar";
-import TaskDrawer from "./components/TaskDrawer";
-import Controls from "./components/Controls";
+import ControlAccordion from "./components/ControlAccordion";
 import Library from "./components/Library";
-
-import { decodeColors, encodeColors } from "./utilities/colors";
-
-import { useShowAlert, useViewState, useColors } from "./hooks/state";
+import Map from "./components/Map";
+import { styleTaskActivities } from "./components/StyleTaskActivities";
+import TaskDrawer from "./components/TaskDrawer";
+import {
+  useColors,
+  useGradientFunction,
+  useIsMobile,
+  useMapRef,
+  useMaxIterations,
+  useShowAlert,
+  useShowControls,
+  useViewState,
+} from "./hooks/state";
+import { encodeColors } from "./utilities/colors";
 
 const DEFAULT_MAX_ITERATIONS = 60;
 
 function App() {
+  // internal only component state
+  const [autoScaleMaxiterations] = useState(false);
+  const mapRefInit = useRef(null);
+
   // App state
   const theme = useTheme();
-  const [getStateFromUrl, setStateFromUrl] = useState(true);
-
-  // URL state
-  const [searchParams, setSearchParams] = useSearchParams();
-  const navigate = useNavigate();
-  const location = useLocation();
+  const [showControls, setShowControls] = useShowControls();
+  const isMobile = useIsMobile();
+  const [, setSearchParams] = useSearchParams();
 
   // Alert state
   const [showAlert, setShowAlert] = useShowAlert();
-  const [glTime, setGlTime] = useState(false);
-  const [autoScaleMaxiterations, setAutoScaleMaxIterations] = useState(false);
 
   // Styling state
-  const [maxIterations, setMaxIterations] = useState(
-    // Initialize maxIterations state from URL parameters or use default values
-    parseFloat(searchParams.get("maxIterations")) || DEFAULT_MAX_ITERATIONS
-  );
-  const [gradientFunction, setGradientFunction] = useState(
-    // Initialize gradientFunction state from URL parameters or use default values
-    searchParams.get("gradientFunction") || "standard"
-  );
-  const [viewState, setViewState] = useViewState();
-  /*const [colors, setColors] = useState(() => {
-    // Initialize colors state from URL parameters or use default values
-    const colorParam = searchParams.get("colors");
-    if (colorParam) {
-      const { start, middle, end } = decodeColors(colorParam);
-      return { start, middle, end };
-    } else {
-      return {
-        start: { r: 44, g: 0, b: 30, hex: "#2C001E" },
-        middle: { r: 233, g: 84, b: 32, hex: "#E95420" },
-        end: { r: 255, g: 255, b: 255, hex: "#FFFFFF" },
-      };
-    }
-  });
-  */
-  const [colors, setColors] = useColors();
+  const [maxIterations, setMaxIterations] = useMaxIterations();
+  const [gradientFunction] = useGradientFunction();
+  const [viewState] = useViewState();
+  const [colors] = useColors();
 
   // Map state
-  const mapRef = useRef();
+  const [mapRef, setMapRefState] = useMapRef();
 
-  // Component toggling
-  const [libraryOpen, setLibraryOpen] = useState(false);
-  const [showControls, setShowControls] = useState(false);
-
-  // Media queries
-  const isMobile = useMediaQuery("(max-width:400px)");
-
-  // Event handlers
   const handleCloseControls = () => setShowControls(false);
 
-  const handleShare = ({
-    viewState_,
-    maxIterations_,
-    colors_,
-    gradientFunction_,
-  }) => {
-    // Create a URL query string using the snap's properties
-    const newQuery = new URLSearchParams({
-      y: viewState_.latitude,
-      x: viewState_.longitude,
-      z: viewState_.zoom,
-      maxIterations: maxIterations_,
-      colors: encodeColors(colors_), // encodeColors is a function from src/utilities/colors.js
-      gradientFunction: gradientFunction_,
-    }).toString();
-
-    // Generate the full URL
-    const fullURL = `${window.location.origin}/?${newQuery}`;
-
-    // Copy the URL to the clipboard
-    navigator.clipboard.writeText(fullURL);
-  };
-
-  const handleLibrarySelect = ({
-    newViewState,
-    newColors,
-    newGradientFunction,
-    newMaxIterations,
-  }) => {
-    // Create a URL query string with the parameters you want to change
-    const newQuery = new URLSearchParams({
-      y: newViewState.latitude,
-      x: newViewState.longitude,
-      z: newViewState.zoom,
-      maxIterations: newMaxIterations,
-    }).toString();
-
-    // Navigate to the new URL
-    navigate(`/?${newQuery}`, { replace: true });
-    setColors(newColors);
-    setGradientFunction(newGradientFunction);
-    setMaxIterations(newMaxIterations);
-    setStateFromUrl(true);
-  };
-
-  const handleButtonClick = () => {
-    if (mapRef.current) {
-      mapRef.current.captureThumbnail();
-    }
-
-    // Show the alert
-    setShowAlert(true);
-
-    // Auto-hide the alert after 3 seconds
-    setTimeout(() => {
-      setShowAlert(false);
-    }, 3000);
-  };
+  useEffect(() => {
+    setMapRefState(mapRefInit);
+  }, []);
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -154,68 +67,28 @@ function App() {
 
   // as zoom changes, auto scale max iterations
   useEffect(() => {
-    if (autoScaleMaxiterations) {
+    const idealMaxIterations = Math.floor(20 + viewState.zoom ** 2);
+    // only update if idealMaxIterations is greater than current maxIterations by a factor of 2
+    // or if it's less than the current maxIterations by a factor of 2
+    if (autoScaleMaxiterations && idealMaxIterations > maxIterations * 2) {
       const newMaxIterations = Math.floor(20 + viewState.zoom ** 2);
       setMaxIterations(newMaxIterations);
     }
-  }, [viewState.zoom, autoScaleMaxiterations]);
-
+  }, [viewState.zoom, autoScaleMaxiterations, maxIterations, setMaxIterations]);
 
   // Update URL when state changes
   useEffect(() => {
     setSearchParams({
+      // convert to uppercase to match the URL toString().
       x: viewState.longitude.toString(),
       y: viewState.latitude.toString(),
       z: viewState.zoom.toString(),
       // don't include the "#" in the URL
       maxIterations: maxIterations || DEFAULT_MAX_ITERATIONS,
-      colors:
-        `${colors.start.hex}-${colors.middle.hex}-${colors.end.hex}`.replace(
-          /#/g,
-          ""
-        ),
+      colors: encodeColors({ ...colors }),
       gradientFunction: gradientFunction,
     });
   }, [viewState, maxIterations, gradientFunction, colors, setSearchParams]);
-
-  // Available tools
-  const tools = {
-    styleToggle: {
-      label: "Style",
-      onClick: () => {
-        setShowControls(!showControls);
-      },
-      icon: PaletteIcon,
-    },
-    captureButton: {
-      label: "Save",
-      onClick: handleButtonClick,
-      icon: SnapIcon,
-    },
-    openLibraryButton: {
-      label: "Image Library",
-      onClick: () => setLibraryOpen(true),
-      icon: LibraryIcon,
-    },
-  };
-
-  // Activity configuration
-  const editTools = [
-    tools.styleToggle,
-    tools.captureButton,
-    tools.openLibraryButton,
-  ];
-
-  const parametersActivity = {
-    tools: [
-      {
-        label: "Number of iterations",
-        initialValue: maxIterations,
-        inputType: "number",
-        inputProps: { step: 100 },
-      },
-    ],
-  };
 
   return (
     <div
@@ -249,47 +122,19 @@ function App() {
           Image saved to library
         </Alert>
       </Snackbar>
-      <TaskDrawer editTools={editTools} />
-
+      <TaskDrawer />
       {showControls && (
-        <Controls
+        <ControlAccordion
           {...{
-            parametersActivity,
-            setAutoScaleMaxIterations,
-            colors,
-            setColors,
-            setGradientFunction,
             handleCloseControls,
-            autoScaleMaxiterations,
-            setGlTime,
-            maxIterations,
-            setMaxIterations,
+            activities: styleTaskActivities,
           }}
         />
       )}
-
-      {/* Render the main Map component. This should expand to take any available space. */}
       <div style={{ flex: 1, overflow: "hidden" }}>
-        <Map
-          ref={mapRef}
-          {...{
-            maxIterations,
-            colors,
-            gradientFunction,
-            setViewState,
-            initialViewState: viewState,
-            glTime,
-          }}
-        />
+        <Map ref={mapRef} />
       </div>
-
-      {/* Render the Library dialog */}
-      <Library
-        libraryOpen={libraryOpen}
-        setLibraryOpen={setLibraryOpen}
-        handleLibrarySelect={handleLibrarySelect}
-        handleShare={handleShare}
-      />
+      <Library />
     </div>
   );
 }

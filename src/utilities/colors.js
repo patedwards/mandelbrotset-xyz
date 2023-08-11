@@ -11,7 +11,7 @@ function hexToRgb(hex) {
 }
 
 export const encodeColors = ({ start, middle, end }) => {
-  return `${start.hex}-${middle.hex}-${end.hex}`.replace(/#/g, "");
+  return `${start.hex}-${middle.hex}-${end.hex}`.replace(/#/g, "").toUpperCase();
 };
 
 export const decodeColors = (colors) => {

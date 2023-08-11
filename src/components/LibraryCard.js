@@ -1,15 +1,15 @@
-import React, { useState } from "react";
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
+import ShareIcon from "@mui/icons-material/Share";
 import {
   Card,
+  CardActionArea,
   CardMedia,
   IconButton,
   Typography,
-  CardActionArea,
   useTheme,
 } from "@mui/material";
-import ShareIcon from "@mui/icons-material/Share";
-import DeleteIcon from "@mui/icons-material/Delete";
-import EditIcon from "@mui/icons-material/Edit";
+import React, { useState } from "react";
 
 /*
 The typography on the card below gets in the way of the click,

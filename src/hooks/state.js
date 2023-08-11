@@ -1,24 +1,33 @@
-import { useEffect } from "react";
+// Imports
+import { useEffect, useMemo } from "react";
 import { atom, useAtom } from "jotai";
-import { useLocation, useSearchParams, useNavigate } from "react-router-dom";
-import { decodeColors, encodeColors } from "../utilities/colors";
-import { useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
+import { decodeColors } from "../utilities/colors";
+import { subscribeAtomToUrl } from "../utilities/jotaiHelpers";
 import { createTileLayer } from "../utilities/deck";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import { useTheme } from "@mui/material/styles";
 
-const DEFAULT_MAX_ITERATIONS = 60;
+// Atoms: Global settings
+const getStateFromUrlAtom = atom(true);
+const showAlertAtom = atom(false);
+const glTimeAtom = atom(false);
+const autoScaleMaxIterationsAtom = atom(true);
 
-export const getStateFromUrlAtom = atom(true);
-export const showAlertAtom = atom(false);
-export const glTimeAtom = atom(false);
-export const autoScaleMaxIterationsAtom = atom(true);
+// Atoms: UI states
+export const libraryOpenAtom = atom(false);
+export const showControlsAtom = atom(false);
 
-export const maxIterationsAtom = atom(DEFAULT_MAX_ITERATIONS);
+// Atoms: Visualization parameters
+export const maxIterationsAtom = atom(60);
 export const gradientFunctionAtom = atom("standard");
 export const colorsAtom = atom({
   start: { r: 44, g: 0, b: 30, hex: "#2C001E" },
   middle: { r: 233, g: 84, b: 32, hex: "#E95420" },
   end: { r: 255, g: 255, b: 255, hex: "#FFFFFF" },
 });
+
+// Atoms: map state
 export const viewStateAtom = atom({
   longitude: -0.45,
   latitude: 0,
@@ -28,11 +37,9 @@ export const viewStateAtom = atom({
   bearing: 0,
   pitch: 0,
 });
+const mapRefAtom = atom(null);
 
-export const libraryOpenAtom = atom(false);
-export const showControlsAtom = atom(false);
-
-// hooks not requiring the URL for context
+// Basic hooks
 export const useShowAlert = () => useAtom(showAlertAtom);
 export const useGlTime = () => useAtom(glTimeAtom);
 export const useAutoScaleMaxIterations = () =>
@@ -40,58 +47,26 @@ export const useAutoScaleMaxIterations = () =>
 export const useLibraryOpen = () => useAtom(libraryOpenAtom);
 export const useShowControls = () => useAtom(showControlsAtom);
 export const useGetStateFromUrl = () => useAtom(getStateFromUrlAtom);
+export const useIsMobile = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  return isMobile;
+};
+export const useMapRef = () => useAtom(mapRefAtom);
 
-// hooks requiring the URL for context
-export function useMaxIterations() {
-  const [searchParams] = useSearchParams();
-  const [maxIterations, setMaxIterations] = useAtom(maxIterationsAtom);
+// Hooks syncing with URL
+export const useColors = subscribeAtomToUrl(colorsAtom, "colors", decodeColors);
+export const useGradientFunction = subscribeAtomToUrl(
+  gradientFunctionAtom,
+  "gradientFunction"
+);
+export const useMaxIterations = subscribeAtomToUrl(
+  maxIterationsAtom,
+  "maxIterations",
+  parseInt
+);
 
-  useEffect(() => {
-    const value =
-      parseFloat(searchParams.get("maxIterations")) || DEFAULT_MAX_ITERATIONS;
-    setMaxIterations(value);
-  }, [searchParams]);
-
-  return [maxIterations, setMaxIterations];
-}
-
-export function useGradientFunction() {
-  const [searchParams] = useSearchParams();
-  const [gradientFunction, setGradientFunction] = useAtom(gradientFunctionAtom);
-
-  useEffect(() => {
-    const value = searchParams.get("gradientFunction") || "standard";
-    setGradientFunction(value);
-  }, [searchParams]);
-
-  return [gradientFunction, setGradientFunction];
-}
-
-export function useColors() {
-  const [searchParams] = useSearchParams();
-  const [colors, setColors] = useAtom(colorsAtom);
-
-  useEffect(() => {
-    const colorParam = searchParams.get("colors");
-    if (colorParam) {
-      setColors(decodeColors(colorParam));
-    }
-  }, [searchParams]);
-
-  return [colors, setColors];
-}
-
-/*
-const newViewState = {
-      latitude: parseFloat(queryParams.get("y")) || 0,
-      longitude: parseFloat(queryParams.get("x")) || -0.45,
-      zoom: parseFloat(queryParams.get("z")) || 7,
-      minZoom: 2,
-      maxZoom: Infinity,
-      bearing: 0,
-      pitch: 0,
-    };
-*/
+// Complex hooks
 export function useViewState() {
   const [getStateFromUrl, setGetStateFromUrl] = useAtom(getStateFromUrlAtom);
   const [searchParams] = useSearchParams();
@@ -112,7 +87,7 @@ export function useViewState() {
     };
     setViewState(newViewState);
     setGetStateFromUrl(false);
-  }, [searchParams, getStateFromUrl, setViewState]);
+  }, [searchParams, getStateFromUrl, setViewState, setGetStateFromUrl]);
 
   return [viewState, setViewState];
 }
@@ -121,8 +96,32 @@ export const useTileLayer = () => {
   const [maxIterations] = useMaxIterations();
   const [colors] = useColors();
   const [gradientFunction] = useGradientFunction();
+
+  useEffect(() => {
+    console.log("gradientFunction", gradientFunction);
+  }, [gradientFunction]);
+
   return useMemo(() => {
     console.log("createTileLayer");
     return createTileLayer({ maxIterations, colors, gradientFunction });
   }, [maxIterations, colors, gradientFunction]);
 };
+
+// useMaxIterations will subscribe to the URL and then
+// update the maxIterations based on the URL if 
+// autoScaleMaxIterations is false, otherwise it will 
+// vary with the zoom level from viewState
+
+export function useMaxIterationsNew() {
+    const [autoScaleMaxIterations] = useAutoScaleMaxIterations();
+    const [maxIterations, setMaxIterations] = useAtom(maxIterationsAtom);
+    const [viewState] = useViewState();
+    
+    useEffect(() => {
+        if (autoScaleMaxIterations) {
+        setMaxIterations(Math.floor(viewState.zoom * 10));
+        }
+    }, [autoScaleMaxIterations, viewState, setMaxIterations]);
+    
+    return [maxIterations, setMaxIterations];
+    }

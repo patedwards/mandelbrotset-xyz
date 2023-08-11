@@ -13,18 +13,29 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 
-import { useStore } from "../hooks/store";
+import { encodeColors } from "../utilities/colors";
 
+import { useStore } from "../hooks/store";
+import {
+  useGradientFunction,
+  useColors,
+  useMaxIterations,
+  useGetStateFromUrl,
+  useLibraryOpen,
+} from "../hooks/state";
+import { useNavigate } from "react-router-dom";
 import LibraryCard from "./LibraryCard";
 
-const ImageViewerDialog = ({
-  libraryOpen,
-  setLibraryOpen,
-  handleLibrarySelect,
-  handleShare,
-}) => {
+const ImageViewerDialog = () => {
   const theme = useTheme();
+  const navigate = useNavigate();
   const fullScreen = useMediaQuery(theme.breakpoints.down("sm"));
+  const [libraryOpen, setLibraryOpen] = useLibraryOpen()
+
+  const [, setGradientFunction] = useGradientFunction();
+  const [, setColors] = useColors();
+  const [, setMaxIterations] = useMaxIterations();
+  const [, setStateFromUrl] = useGetStateFromUrl();
 
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedSnap, setSelectedSnap] = useState(null);
@@ -38,6 +49,51 @@ const ImageViewerDialog = ({
       syncLibrary();
     }
   }, [libraryOpen, syncLibrary]);
+
+  const handleShare = ({
+    viewState_,
+    maxIterations_,
+    colors_,
+    gradientFunction_,
+  }) => {
+    // Create a URL query string using the snap's properties
+    const newQuery = new URLSearchParams({
+      y: viewState_.latitude,
+      x: viewState_.longitude,
+      z: viewState_.zoom,
+      maxIterations: maxIterations_,
+      colors: encodeColors(colors_), // encodeColors is a function from src/utilities/colors.js
+      gradientFunction: gradientFunction_,
+    }).toString();
+
+    // Generate the full URL
+    const fullURL = `${window.location.origin}/?${newQuery}`;
+
+    // Copy the URL to the clipboard
+    navigator.clipboard.writeText(fullURL);
+  };
+
+  const handleLibrarySelect = ({
+    newViewState,
+    newColors,
+    newGradientFunction,
+    newMaxIterations,
+  }) => {
+    // Create a URL query string with the parameters you want to change
+    const newQuery = new URLSearchParams({
+      y: newViewState.latitude,
+      x: newViewState.longitude,
+      z: newViewState.zoom,
+      maxIterations: newMaxIterations,
+    }).toString();
+
+    // Navigate to the new URL
+    navigate(`/?${newQuery}`, { replace: true });
+    setColors(newColors);
+    setGradientFunction(newGradientFunction);
+    setMaxIterations(newMaxIterations);
+    setStateFromUrl(true);
+  };
 
   const handleCardClick = ({
     viewState,

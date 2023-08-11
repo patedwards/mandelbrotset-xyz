@@ -9,6 +9,7 @@ import { Button } from "@mui/material";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import { TextField } from "@mui/material"; // Import TextField
+import { useColors, useGradientFunction } from "../hooks/state";
 
 const gradientFunctions = [
   {
@@ -41,7 +42,10 @@ const gradientFunctions = [
   },
 ];
 
-export const ColorStyler = ({ colors, setColors }) => {
+export const ColorStyler = () => {
+
+  const [colors, setColors ] = useColors()
+
   const [chosen, setChosen] = useState(null);
   const [showBigPicker, setShowBigPicker] = useState(false);
   const defaultColors = [
@@ -189,10 +193,13 @@ export const ColorStyler = ({ colors, setColors }) => {
   );
 };
 
-export const GradientFunctionSelector = ({ setGradientFunction }) => {
+export const GradientFunctionSelector = () => {
+  const [gradientFunction, setGradientFunction] = useGradientFunction();
   return (
     <Box>
       <Selector
+        label="Gradient function"
+        value={gradientFunction}
         items={gradientFunctions}
         handleSelection={(item) => setGradientFunction(item.name)}
       />

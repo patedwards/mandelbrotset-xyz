@@ -1,23 +1,33 @@
-import * as React from "react";
-import MuiDrawer from "@mui/material/Drawer";
-import MuiAppBar from "@mui/material/AppBar";
+import LibraryIcon from "@mui/icons-material/Collections";
+import PaletteIcon from "@mui/icons-material/Palette";
+import SnapIcon from "@mui/icons-material/Save";
+import useMediaQuery from "@mui/material/useMediaQuery";
+
 import { Toolbar } from "@mui/material";
-import Tooltip from "@mui/material/Tooltip";
+import MuiAppBar from "@mui/material/AppBar";
+import MuiDrawer from "@mui/material/Drawer";
 import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemIcon from "@mui/material/ListItemIcon";
-import useMediaQuery from "@mui/material/useMediaQuery";
 import Paper from "@mui/material/Paper";
+import Tooltip from "@mui/material/Tooltip";
 
 import { useTheme } from "@mui/material/styles"; // Import the useTheme hook
+import {
+  useIsMobile,
+  useMapRef,
+  useShowAlert,
+  useShowControls,
+  useLibraryOpen,
+} from "../hooks/state";
 
-const Tool = (tool) => {
+const Task = (task) => {
   const theme = useTheme();
 
   const isMobile = useMediaQuery("(max-width:600px)");
 
-  // Tool content for mobile and desktop
-  const toolContent = (
+  // task content for mobile and desktop
+  const taskContent = (
     <>
       <ListItemIcon
         sx={{
@@ -26,17 +36,17 @@ const Tool = (tool) => {
           color: theme.palette.primary.main,
         }}
       >
-        <tool.icon />
+        <task.icon />
       </ListItemIcon>
-      {isMobile && <div>{tool.label}</div>} {/* Render label only on mobile */}
+      {isMobile && <div>{task.label}</div>} {/* Render label only on mobile */}
     </>
   );
 
   return (
-    <ListItem key={tool.label} disablePadding>
+    <ListItem key={task.label} disablePadding>
       {isMobile ? (
         <ListItemButton
-          {...tool}
+          {...task}
           sx={{
             width: "auto",
             height: 48,
@@ -47,15 +57,12 @@ const Tool = (tool) => {
             padding: "0 0.75rem",
           }}
         >
-          {toolContent}
+          {taskContent}
         </ListItemButton>
       ) : (
-        <Tooltip
-          title={tool.label}
-          placement="right"
-        >
+        <Tooltip title={task.label} placement="right">
           <ListItemButton
-            {...tool}
+            {...task}
             sx={{
               width: "auto",
               height: 48,
@@ -65,7 +72,7 @@ const Tool = (tool) => {
               padding: "0 0.75rem",
             }}
           >
-            {toolContent}
+            {taskContent}
           </ListItemButton>
         </Tooltip>
       )}
@@ -73,9 +80,51 @@ const Tool = (tool) => {
   );
 };
 
-export default function TaskDrawer({ editTools }) {
-  const isMobileScreen = useMediaQuery("(max-width:600px)");
+export default function TaskDrawer() {
+  const isMobileScreen = useIsMobile();
+  const [showControls, setShowControls] = useShowControls();
+  const [, setShowAlert] = useShowAlert();
+  const [, setLibraryOpen] = useLibraryOpen();
   const theme = useTheme();
+  const [mapRef] = useMapRef();
+
+  const handleSaveButtonClick = () => {
+    if (mapRef.current) {
+      mapRef.current.captureThumbnail();
+    }
+
+    // !! This exists in hooks/state.js
+    // !! Also, this is a good place to add "alertMessage" to state
+    // Mabye replace "showAlert" with "alertMessage"
+    // e.g {show: true, message: "Image saved to library"}
+    setShowAlert(true);
+
+    // Auto-hide the alert after 3 seconds
+    setTimeout(() => {
+      setShowAlert(false);
+    }, 3000);
+  };
+
+  const tasks = [
+    {
+      label: "Style",
+      onClick: () => {
+        setShowControls(!showControls);
+      },
+      icon: PaletteIcon,
+    },
+    {
+      label: "Save",
+      onClick: handleSaveButtonClick,
+      icon: SnapIcon,
+    },
+    {
+      label: "Image Library",
+      onClick: () => setLibraryOpen(true),
+      icon: LibraryIcon,
+    },
+  ];
+
   return (
     <MuiAppBar position="static">
       <Toolbar />
@@ -101,8 +150,8 @@ export default function TaskDrawer({ editTools }) {
             padding: 0,
           }}
         >
-          {editTools.map((tool) => (
-            <Tool {...tool} key={tool.label} />
+          {tasks.map((task) => (
+            <Task {...task} key={task.label} />
           ))}
         </Paper>
       </MuiDrawer>
