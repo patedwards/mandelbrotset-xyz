@@ -81,6 +81,7 @@ const Task = (task) => {
 };
 
 export default function TaskDrawer() {
+  console.log("Rendering task drawer")
   const isMobileScreen = useIsMobile();
   const [showControls, setShowControls] = useShowControls();
   const [, setShowAlert] = useShowAlert();

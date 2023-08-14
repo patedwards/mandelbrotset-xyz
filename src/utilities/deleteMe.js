@@ -86,6 +86,7 @@ export const createTileLayerGL = ({
   colors,
   gradientFunction,
 }) => {
+  console.log("createTileLayer GL");
   return new TileLayer({
     minZoom: 0,
     maxZoom: Infinity,
@@ -118,6 +119,7 @@ export const createTileLayerGL = ({
       canvas.height = 256;
       const context = canvas.getContext("2d");
       context.drawImage(renderer.domElement, 0, 0);
+      console.log("canvas", minX, maxX, minY, maxY);
 
       return canvas;
     },

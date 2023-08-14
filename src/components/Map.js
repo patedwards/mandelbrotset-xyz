@@ -12,16 +12,22 @@ import DeckGL from "@deck.gl/react";
 import { useStore } from "../hooks/store";
 import {
   useTileLayer,
-  useViewState,
   useMaxIterations,
   useGradientFunction,
   useColors,
+  useX,
+  useY,
+  useZ,
+  useMapRef,
 } from "../hooks/state";
 //import { createTileLayer } from "../utilities/deck";
 
-const Map = forwardRef(({ }, ref) => {
-  const [initialViewState, setViewState] = useViewState();
-  const [maxIterations, ] = useMaxIterations();
+const Map = forwardRef(({}, ref) => {
+  //const [ref] = useMapRef();
+  const [x, setX] = useX();
+  const [y, setY] = useY();
+  const [z, setZ] = useZ();
+  const [maxIterations] = useMaxIterations();
   const [colors] = useColors();
   const [gradientFunction] = useGradientFunction();
   const { addLibraryItem } = useStore();
@@ -41,7 +47,6 @@ const Map = forwardRef(({ }, ref) => {
 
   useImperativeHandle(ref, () => ({
     captureThumbnail: async () => {
-      console.log("Map.js: useImperativeHandle");
       if (!isDeckLoaded) {
         console.error("DeckGL is not loaded yet");
         return;
@@ -58,7 +63,9 @@ const Map = forwardRef(({ }, ref) => {
   }));
 
   const handleViewStateChange = ({ viewState }) => {
-    setViewState(viewState);
+    setX(viewState.longitude);
+    setY(viewState.latitude);
+    setZ(viewState.zoom);
   };
 
   const onAfterRender = () => {
@@ -116,7 +123,11 @@ const Map = forwardRef(({ }, ref) => {
       // Update the library
       const newItem = {
         imageLocation,
-        viewState: initialViewState,
+        viewState: {
+          longitude: x,
+          latitude: y,
+          zoom: z,
+        },
         maxIterations,
         colors,
         gradientFunction,
@@ -132,7 +143,15 @@ const Map = forwardRef(({ }, ref) => {
       ref={deckRef}
       onAfterRender={onAfterRender}
       controller={true}
-      initialViewState={initialViewState}
+      initialViewState={{
+        longitude: x,
+        latitude: y,
+        zoom: z,
+        pitch: 0,
+        bearing: 0,
+        maxZoom: Infinity,
+        minZoon: 2,
+      }}
       onViewStateChange={handleViewStateChange}
       layers={[layer]}
       onWebGLInitialized={setIsDeckLoaded}
@@ -141,4 +160,3 @@ const Map = forwardRef(({ }, ref) => {
 });
 
 export default memo(Map);
-

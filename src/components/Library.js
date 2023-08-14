@@ -85,6 +85,7 @@ const ImageViewerDialog = () => {
       x: newViewState.longitude,
       z: newViewState.zoom,
       maxIterations: newMaxIterations,
+      colors: encodeColors(newColors),
     }).toString();
 
     // Navigate to the new URL

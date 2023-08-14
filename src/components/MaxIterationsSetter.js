@@ -1,15 +1,22 @@
-import { Stack, TextField, Box, IconButton, Typography } from "@mui/material";
+import {
+  Stack,
+  TextField,
+  Box,
+  IconButton,
+  Typography,
+  FormControlLabel,
+  Switch,
+} from "@mui/material";
 import { useState } from "react";
 import KeyboardReturnIcon from "@mui/icons-material/KeyboardReturn";
 import { useAutoScaleMaxIterations, useMaxIterations } from "../hooks/state";
-import Switch from "@mui/material/Switch";
-import FormControlLabel from "@mui/material/FormControlLabel";
-
 
 const MaxIterationsSetter = () => {
   const [maxIterations, setMaxIterations] = useMaxIterations();
   const [maxIterationsValue, setMaxIterationsValue] = useState(maxIterations);
-  const [autoScaleMaxiterations, setAutoScaleMaxIterations] = useAutoScaleMaxIterations(); 
+  const [autoScaleMaxiterations, setAutoScaleMaxIterations] =
+    useAutoScaleMaxIterations();
+
   return (
     <Box display="flex" flexDirection="column" alignItems="center">
       <FormControlLabel
@@ -23,7 +30,6 @@ const MaxIterationsSetter = () => {
         }
         label="Auto Scale Max Iterations"
       />
-
       <Box
         sx={{
           zIndex: 999,
@@ -35,7 +41,7 @@ const MaxIterationsSetter = () => {
         <Stack direction="row" spacing={1} alignItems="center">
           <Typography variant="body2">{"Max iterations"}</Typography>
           <TextField
-            value={maxIterationsValue}
+            value={autoScaleMaxiterations ? maxIterations : maxIterationsValue}
             disabled={autoScaleMaxiterations}
             variant="standard"
             onChange={(e) => Math.max(0, setMaxIterationsValue(e.target.value))}
