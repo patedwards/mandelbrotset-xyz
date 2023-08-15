@@ -12,24 +12,17 @@ import DeckGL from "@deck.gl/react";
 import { useStore } from "../hooks/store";
 import {
   useTileLayer,
-  useMaxIterations,
-  useGradientFunction,
-  useColors,
-  useX,
-  useY,
-  useZ,
-  useMapRef,
+  useHandleViewStateChange,
+  useURLSync,
 } from "../hooks/state";
 //import { createTileLayer } from "../utilities/deck";
 
 const Map = forwardRef(({}, ref) => {
-  //const [ref] = useMapRef();
-  const [x, setX] = useX();
-  const [y, setY] = useY();
-  const [z, setZ] = useZ();
-  const [maxIterations] = useMaxIterations();
-  const [colors] = useColors();
-  const [gradientFunction] = useGradientFunction();
+  console.log("Rendering Map");
+  //useURLSync();
+
+  const handleViewStateChange = () => {}; //useHandleViewStateChange();
+
   const { addLibraryItem } = useStore();
   const layer = useTileLayer();
 
@@ -61,12 +54,6 @@ const Map = forwardRef(({}, ref) => {
       setCaptureHD(true); // add this line
     },
   }));
-
-  const handleViewStateChange = ({ viewState }) => {
-    setX(viewState.longitude);
-    setY(viewState.latitude);
-    setZ(viewState.zoom);
-  };
 
   const onAfterRender = () => {
     if (captureHD) {
@@ -123,14 +110,7 @@ const Map = forwardRef(({}, ref) => {
       // Update the library
       const newItem = {
         imageLocation,
-        viewState: {
-          longitude: x,
-          latitude: y,
-          zoom: z,
-        },
-        maxIterations,
-        colors,
-        gradientFunction,
+        pageURL: window.location.href, // Save the current URL
       };
       addLibraryItem(newItem);
 
@@ -144,9 +124,9 @@ const Map = forwardRef(({}, ref) => {
       onAfterRender={onAfterRender}
       controller={true}
       initialViewState={{
-        longitude: x,
-        latitude: y,
-        zoom: z,
+        longitude: 0,
+        latitude: 0,
+        zoom: 7,
         pitch: 0,
         bearing: 0,
         maxZoom: Infinity,

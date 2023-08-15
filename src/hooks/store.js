@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 /*
  Todo: 
@@ -24,11 +24,12 @@ export const useStore = () => {
   };
 
   // Function to add a new item to the library
-  const addLibraryItem = (item) => {
+  const addLibraryItem = useCallback((item) => {
+    console.log("Adding item to library");
     const updatedLibrary = [...library, item];
     localStorage.setItem("library", JSON.stringify(updatedLibrary));
     setLibrary(updatedLibrary);
-  };
+  }, []);
 
   // Function to remove an item from the library
   const removeLibraryItem = (imageLocation) => {
@@ -59,4 +60,3 @@ export const useStore = () => {
     syncLibrary,
   };
 };
-

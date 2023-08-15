@@ -18,19 +18,17 @@ import {
   useMapRef,
   useShowAlert,
   useShowControls,
-  useSyncStateWithUrl,
+  useURLSync,
   useUrlStateHasLoaded,
 } from "./hooks/state";
 
 function App() {
-  const urlStateHasLoaded = useUrlStateHasLoaded(); // re-rendering
+  const urlStateHasLoaded = true;
   const isMobile = useIsMobile(); // re-rendering
 
   const mapRefInit = useRef(null);
   console.log("Rendering App");
   // App state
-
-  useSyncStateWithUrl();
   const theme = useTheme();
   const [showControls, setShowControls] = useShowControls();
 

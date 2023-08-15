@@ -7,19 +7,6 @@ import { useSearchParams } from "react-router-dom";
 import { decodeColors, encodeColors } from "../utilities/colors";
 import { createTileLayer } from "../utilities/deck";
 
-const DEFAULT_URL_STATE = {
-  x: -0.45,
-  y: 0,
-  z: 7,
-  maxIterations: 60,
-  colors: {
-    start: { r: 44, g: 0, b: 30, hex: "#2C001E" },
-    middle: { r: 233, g: 84, b: 32, hex: "#E95420" },
-    end: { r: 255, g: 255, b: 255, hex: "#FFFFFF" },
-  },
-  gradientFunction: "standard",
-};
-
 // Atoms: Global settings
 const getStateFromUrlAtom = atom(true);
 const showAlertAtom = atom(false);
@@ -32,6 +19,16 @@ const showControlsAtom = atom(false);
 
 const mapRefAtom = atom(null);
 const urlStateAtom = atom(null);
+export const xAtom = atom(-0.45);
+export const yAtom = atom(0);
+export const zAtom = atom(7);
+export const maxIterationsAtom = atom(60);
+export const colorsAtom = atom({
+  start: { r: 44, g: 0, b: 30, hex: "#2C001E" },
+  middle: { r: 233, g: 84, b: 32, hex: "#E95420" },
+  end: { r: 255, g: 255, b: 255, hex: "#FFFFFF" },
+});
+export const gradientFunctionAtom = atom("standard");
 
 // Basic hooks
 export const useShowAlert = () => useAtom(showAlertAtom);
@@ -46,104 +43,68 @@ export const useIsMobile = () => {
   return isMobile;
 };
 export const useMapRef = () => useAtom(mapRefAtom);
-export const useUrlState = () => useAtom(urlStateAtom);
+export const useGL = () => useAtom(glTimeAtom);
 
-// Hooks syncing with URL
-const createUrlStateHook = (key) => {
-  return () => {
-    const [urlState, setUrlState] = useAtom(urlStateAtom);
-    const set = (newValue) => {
-      setUrlState((prevState) => ({ ...prevState, [key]: newValue }));
-    };
-    return [urlState[key], set];
-  };
-};
+export const useX = () => useAtom(xAtom);
+export const useY = () => useAtom(yAtom);
+export const useZ = () => useAtom(zAtom);
+export const useMaxIterations = () => useAtom(maxIterationsAtom);
+export const useColors = () => useAtom(colorsAtom);
+export const useGradientFunction = () => useAtom(gradientFunctionAtom);
 
-export const useX = createUrlStateHook("x");
-export const useY = createUrlStateHook("y");
-export const useZ = createUrlStateHook("z");
+export const useViewState = () => {
+  const [x, setX] = useX();
+  const [y, setY] = useY();
+  const [z, setZ] = useZ();
 
-export const useMaxIterations = () => {
-  const [urlState, setUrlState] = useAtom(urlStateAtom);
-  const [glIsUsed] = useGL();
-  const [autoScaleMaxIterations] = useAutoScaleMaxIterations();
+  const handleViewStateChange = useCallback(
+    ({ viewState }) => {
+      setX(viewState.longitude);
+      setY(viewState.latitude);
+      setZ(viewState.zoom);
+      // update the URL with the new viewState
 
-  const setMaxIterations = useCallback(
-    (newMaxIterations) => {
-      setUrlState((prevState) => ({
-        ...prevState,
-        maxIterations: newMaxIterations,
-      }));
     },
-    [setUrlState]
-  ); // dependencies array
+    [setX, setY, setZ]
+  );
 
-  useEffect(() => {
-    if (autoScaleMaxIterations) {
-      const idealMaxIterations = glIsUsed
-        ? Math.floor(60 + urlState.z * 50)
-        : Math.floor(60 + urlState.z * 30);
-      // if the current maxIterations isn't within the ideal by 30%
-      // then set it to the ideal
-      if (
-        urlState.maxIterations < idealMaxIterations * 0.7 ||
-        urlState.maxIterations > idealMaxIterations * 1.3
-      ) {
-        setMaxIterations(idealMaxIterations);
-      }
-    }
-  }, [
-    urlState.z,
-    autoScaleMaxIterations,
-    glIsUsed,
-    urlState.maxIterations,
-    setMaxIterations,
-  ]);
-
-  return [urlState.maxIterations, setMaxIterations];
+  return useMemo(() => {
+    return (
+      {
+        latitude: y,
+        longitude: x,
+        zoom: z,
+        pitch: 0,
+        bearing: 0,
+      },
+      handleViewStateChange
+    );
+  }, [x, y, z]);
 };
 
-export const useColors = () => {
-  const [urlState, setUrlState] = useAtom(urlStateAtom);
+export const useHandleViewStateChange = () => {
+  const [, setX] = useX();
+  const [, setY] = useY();
+  const [, setZ] = useZ();
 
-  const setColors = (newColors) => {
-    setUrlState((prevState) => ({ ...prevState, colors: newColors }));
-  };
-
-  return [urlState.colors, setColors];
-};
-
-export const useGradientFunction = () => {
-  const [urlState, setUrlState] = useAtom(urlStateAtom);
-
-  const setGradientFunction = (newGradientFunction) => {
-    setUrlState((prevState) => ({
-      ...prevState,
-      gradientFunction: newGradientFunction,
-    }));
-  };
-
-  return [urlState.gradientFunction, setGradientFunction];
+  return useCallback(
+    ({ viewState }) => {
+      setX(viewState.longitude);
+      setY(viewState.latitude);
+      setZ(viewState.zoom);
+      const params = new URLSearchParams({
+        x: String(viewState.longitude),
+        y: String(viewState.latitude),
+        z: String(viewState.zoom),
+      });
+  
+      window.history.replaceState({}, "", "?" + params.toString());
+    },
+    [setX, setY, setZ]
+  );
 };
 
 // Complex hooks
-
-export const useGL = () => {
-  const [glTime, setGLTime] = useAtom(glTimeAtom);
-  const [urlState] = useUrlState();
-
-  useEffect(() => {
-    // toggle the use of GL based on zoom level
-    // Here, as an example, GL is used when zoom is greater than 5
-    if (urlState.z < 21) {
-      setGLTime(true);
-    } else {
-      setGLTime(false);
-    }
-  }, [urlState.z, setGLTime]);
-
-  return [glTime, setGLTime];
-};
 
 export const useTileLayer = () => {
   const [maxIterations] = useMaxIterations();
@@ -161,72 +122,52 @@ export const useTileLayer = () => {
   }, [maxIterations, colors, gradientFunction, glIsUsed]);
 };
 
-export const useSyncStateWithUrl = () => {
-  const [urlState, setUrlState] = useAtom(urlStateAtom);
-  const [getStateFromUrl, setGetStateFromUrl] = useAtom(getStateFromUrlAtom);
-  const [searchParams, setSearchParams] = useSearchParams();
+export function useURLSync() {
+  const [x, setX] = useAtom(xAtom);
+  const [y, setY] = useAtom(yAtom);
+  const [z, setZ] = useAtom(zAtom);
+  const [maxIterations, setMaxIterations] = useAtom(maxIterationsAtom);
+  const [colors, setColors] = useAtom(colorsAtom);
+  const [gradientFunction, setGradientFunction] = useAtom(gradientFunctionAtom);
 
+  // On mount, set state from URL
   useEffect(() => {
-    const noParameters = searchParams.toString() === "";
+    const params = new URLSearchParams(window.location.search);
 
-    if (getStateFromUrl) {
-      const newX =
-        searchParams.get("x") !== null
-          ? parseFloat(searchParams.get("x"))
-          : DEFAULT_URL_STATE.x;
-      const newY =
-        searchParams.get("y") !== null
-          ? parseFloat(searchParams.get("y"))
-          : DEFAULT_URL_STATE.y;
-      const newZ =
-        searchParams.get("z") !== null
-          ? parseFloat(searchParams.get("z"))
-          : DEFAULT_URL_STATE.z;
+    setX(parseFloat(params.get("x") || x));
+    setY(parseFloat(params.get("y") || y));
+    setZ(parseFloat(params.get("z") || z));
+    setMaxIterations(parseInt(params.get("maxIterations") || maxIterations));
 
-      const newColors =
-        searchParams.get("colors") !== null
-          ? decodeColors(searchParams.get("colors"))
-          : DEFAULT_URL_STATE.colors;
-
-      const newState = {
-        x: newX,
-        y: newY,
-        z: newZ,
-        maxIterations:
-          searchParams.get("maxIterations") || DEFAULT_URL_STATE.maxIterations,
-        colors: newColors,
-        gradientFunction:
-          searchParams.get("gradientFunction") ||
-          DEFAULT_URL_STATE.gradientFunction,
-      };
-
-      setUrlState(newState);
-      setGetStateFromUrl(false);
-    } else if (noParameters) {
-      setUrlState(DEFAULT_URL_STATE);
-      setGetStateFromUrl(false);
-    }
-  }, [getStateFromUrl, searchParams, setGetStateFromUrl, setUrlState]);
-
-  useEffect(() => {
-    if (!getStateFromUrl) {
-      setSearchParams({
-        x: urlState.x.toString(),
-        y: urlState.y.toString(),
-        z: urlState.z.toString(),
-        maxIterations: urlState.maxIterations.toString(),
-        colors: encodeColors(urlState.colors),
-        gradientFunction: urlState.gradientFunction,
+    const colorsParam = params.get("colors");
+    if (colorsParam) {
+      const [start, middle, end] = colorsParam.split("-");
+      setColors({
+        start: { ...colors.start, hex: `#${start}` },
+        middle: { ...colors.middle, hex: `#${middle}` },
+        end: { ...colors.end, hex: `#${end}` },
       });
     }
-  }, [
-    getStateFromUrl,
-    urlState,
-    setSearchParams,
-    setUrlState,
-    setGetStateFromUrl,
-  ]);
-};
+
+    setGradientFunction(params.get("gradientFunction") || gradientFunction);
+  }, []);
+
+  // When state changes, update URL
+  useEffect(() => {
+    const params = new URLSearchParams({
+      x: String(x),
+      y: String(y),
+      z: String(z),
+      maxIterations: String(maxIterations),
+      colors: `${colors.start.hex.slice(1)}-${colors.middle.hex.slice(
+        1
+      )}-${colors.end.hex.slice(1)}`,
+      gradientFunction,
+    });
+
+    window.history.replaceState({}, "", "?" + params.toString());
+  }, [x, y, z, maxIterations, colors, gradientFunction]);
+}
 
 export const useUrlStateHasLoaded = () => {
   const [urlState] = useAtom(urlStateAtom);
