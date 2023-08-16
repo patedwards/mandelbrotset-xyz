@@ -6,7 +6,7 @@ import {
   PlaneGeometry,
   Scene,
   ShaderMaterial,
-  WebGLRenderer
+  WebGLRenderer,
 } from "three";
 import { makeMandelbrot } from "../utilities/tileGeneration";
 import { fragmentShader, vertexShader } from "./gLshaders";
@@ -30,6 +30,12 @@ export const createTileLayer = ({
         minZoom: 0,
         maxZoom: Infinity,
         tileSize: 256,
+        parameters: {
+          maxIterations,
+          colors,
+          gradientFunction,
+          glIsUsed,
+        },
         updateTriggers: {
           getTileData: { maxIterations, colors, gradientFunction, glIsUsed },
         },
@@ -85,9 +91,27 @@ export const createTileLayer = ({
             uniforms: {
               maxIterations: { value: maxIterations },
               mandelbrotBounds: { value: [minX, maxX, minY, maxY] },
-              colorA: { value: [colors.start.r/255, colors.start.g/255, colors.start.b/255] },
-              colorB: { value: [colors.middle.r/255, colors.middle.g/255, colors.middle.b/255]},
-              colorC: { value: [colors.end.r/255, colors.end.g/255, colors.end.b/255]},
+              colorA: {
+                value: [
+                  colors.start.r / 255,
+                  colors.start.g / 255,
+                  colors.start.b / 255,
+                ],
+              },
+              colorB: {
+                value: [
+                  colors.middle.r / 255,
+                  colors.middle.g / 255,
+                  colors.middle.b / 255,
+                ],
+              },
+              colorC: {
+                value: [
+                  colors.end.r / 255,
+                  colors.end.g / 255,
+                  colors.end.b / 255,
+                ],
+              },
             },
           });
 

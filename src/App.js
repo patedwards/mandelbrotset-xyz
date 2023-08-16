@@ -97,7 +97,7 @@ function App() {
             />
           )}
           <div style={{ flex: 1, overflow: "hidden" }}>
-            <Map />
+            <Map ref={mapRefInit} />
           </div>
           <Library />
         </div>

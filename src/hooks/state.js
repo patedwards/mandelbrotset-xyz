@@ -29,6 +29,13 @@ export const colorsAtom = atom({
   end: { r: 255, g: 255, b: 255, hex: "#FFFFFF" },
 });
 export const gradientFunctionAtom = atom("standard");
+const initialViewStateAtom = atom({
+  longitude: -0.45,
+  latitude: 0,
+  zoom: 7,
+  bearing: 0,
+  pitch: 0,
+});
 
 // Basic hooks
 export const useShowAlert = () => useAtom(showAlertAtom);
@@ -52,34 +59,16 @@ export const useMaxIterations = () => useAtom(maxIterationsAtom);
 export const useColors = () => useAtom(colorsAtom);
 export const useGradientFunction = () => useAtom(gradientFunctionAtom);
 
+export const useInitialViewState = () => useAtom(initialViewStateAtom);
+
 export const useViewState = () => {
-  const [x, setX] = useX();
-  const [y, setY] = useY();
-  const [z, setZ] = useZ();
+  const [x] = useX();
+  const [y] = useY();
+  const [z] = useZ();
 
-  const handleViewStateChange = useCallback(
-    ({ viewState }) => {
-      setX(viewState.longitude);
-      setY(viewState.latitude);
-      setZ(viewState.zoom);
-      // update the URL with the new viewState
-
-    },
-    [setX, setY, setZ]
-  );
-
-  return useMemo(() => {
-    return (
-      {
-        latitude: y,
-        longitude: x,
-        zoom: z,
-        pitch: 0,
-        bearing: 0,
-      },
-      handleViewStateChange
-    );
-  }, [x, y, z]);
+  return [{ longitude: x, latitude: y, zoom: z ,bearing: 0, pitch: 0
+    
+  }];
 };
 
 export const useHandleViewStateChange = () => {
@@ -97,7 +86,7 @@ export const useHandleViewStateChange = () => {
         y: String(viewState.latitude),
         z: String(viewState.zoom),
       });
-  
+
       window.history.replaceState({}, "", "?" + params.toString());
     },
     [setX, setY, setZ]

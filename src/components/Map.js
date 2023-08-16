@@ -10,18 +10,14 @@ import {
 import DeckGL from "@deck.gl/react";
 
 import { useStore } from "../hooks/store";
-import {
-  useTileLayer,
-  useHandleViewStateChange,
-  useURLSync,
-} from "../hooks/state";
-//import { createTileLayer } from "../utilities/deck";
+import { useTileLayer, useInitialViewState } from "../hooks/state";
 
 const Map = forwardRef(({}, ref) => {
-  console.log("Rendering Map");
-  //useURLSync();
+  const [initialViewState] = useInitialViewState();
+  const [deckViewState, setDeckViewState] = useState(null);
+  const deckViewStateRef = useRef(null);
 
-  const handleViewStateChange = () => {}; //useHandleViewStateChange();
+  console.log("Rendering Map", initialViewState);
 
   const { addLibraryItem } = useStore();
   const layer = useTileLayer();
@@ -68,6 +64,7 @@ const Map = forwardRef(({}, ref) => {
       setCaptureHD(false); // add this line
     }
     if (captureThumbnail) {
+      console.log("captureThumbnail");
       const deck = deckRef.current.deck;
       const canvas = deck.canvas;
 
@@ -107,10 +104,13 @@ const Map = forwardRef(({}, ref) => {
       // Save the image and viewState separately as strings
       localStorage.setItem(imageLocation, base64Image);
 
+      console.log("layer", layer, layer.props.parameters);
+
       // Update the library
       const newItem = {
         imageLocation,
-        pageURL: window.location.href, // Save the current URL
+        viewState: deckViewStateRef.current,
+        ...layer.props.parameters,
       };
       addLibraryItem(newItem);
 
@@ -123,16 +123,10 @@ const Map = forwardRef(({}, ref) => {
       ref={deckRef}
       onAfterRender={onAfterRender}
       controller={true}
-      initialViewState={{
-        longitude: 0,
-        latitude: 0,
-        zoom: 7,
-        pitch: 0,
-        bearing: 0,
-        maxZoom: Infinity,
-        minZoon: 2,
+      initialViewState={initialViewState}
+      onViewStateChange={({ viewState }) => {
+        deckViewStateRef.current = viewState;
       }}
-      onViewStateChange={handleViewStateChange}
       layers={[layer]}
       onWebGLInitialized={setIsDeckLoaded}
     />

@@ -1,56 +1,82 @@
 import { useState, useEffect, useCallback } from "react";
 
-/*
- Todo: 
- - use indexedDB instead of localStorage, this will help with the 5MB limit
- - use firebase to store the library for authenticated users
-
-*/
-
 export const useStore = () => {
-  // State for the library
   const [library, setLibrary] = useState([]);
 
+  const syncLibrary = useCallback(() => {
+    try {
+      const updatedLibrary = JSON.parse(localStorage.getItem("library")) || [];
+      setLibrary(updatedLibrary);
+    } catch (error) {
+      console.error("Failed to sync library from localStorage:", error);
+    }
+  }, []);
+
   useEffect(() => {
-    // Fetch the library from localStorage when the hook is used
-    const initialLibrary = JSON.parse(localStorage.getItem("library")) || [];
-    setLibrary(initialLibrary);
+    try {
+      const initialLibrary = JSON.parse(localStorage.getItem("library")) || [];
+      setLibrary(initialLibrary);
+    } catch (error) {
+      console.error("Failed to read from localStorage:", error);
+    }
   }, []);
 
-  // adding this function to sync the library with localStorage, this is useful when the library is updated from another tab
-  const syncLibrary = () => {
-    const updatedLibrary = JSON.parse(localStorage.getItem("library")) || [];
-    setLibrary(updatedLibrary);
-  };
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === "library") {
+        syncLibrary();
+      }
+    };
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, [syncLibrary]);
 
-  // Function to add a new item to the library
-  const addLibraryItem = useCallback((item) => {
-    console.log("Adding item to library");
-    const updatedLibrary = [...library, item];
-    localStorage.setItem("library", JSON.stringify(updatedLibrary));
-    setLibrary(updatedLibrary);
-  }, []);
+  const addLibraryItem = useCallback(
+    (item) => {
+      const updatedLibrary = [...library, item];
+      try {
+        localStorage.setItem("library", JSON.stringify(updatedLibrary));
+        setLibrary(updatedLibrary);
+      } catch (error) {
+        console.error("Failed to add item to localStorage:", error);
+      }
+    },
+    [library]
+  );
 
-  // Function to remove an item from the library
-  const removeLibraryItem = (imageLocation) => {
-    localStorage.removeItem(imageLocation);
-    const updatedLibrary = library.filter(
-      (item) => item.imageLocation !== imageLocation
-    );
-    localStorage.setItem("library", JSON.stringify(updatedLibrary));
-    setLibrary(updatedLibrary);
-  };
+  const removeLibraryItem = useCallback(
+    (imageLocation) => {
+      try {
+        const updatedLibrary = library.filter(
+          (item) => item.imageLocation !== imageLocation
+        );
+        localStorage.setItem("library", JSON.stringify(updatedLibrary));
+        setLibrary(updatedLibrary);
+      } catch (error) {
+        console.error("Failed to remove item from localStorage:", error);
+      }
+    },
+    [library]
+  );
 
-  // Function to update an item in the library
-  const updateLibraryItem = (imageLocation, newName) => {
-    const updatedLibrary = [...library];
-    const itemIndex = updatedLibrary.findIndex(
-      (item) => item.imageLocation === imageLocation
-    );
-    updatedLibrary[itemIndex].name = newName;
-    localStorage.setItem("library", JSON.stringify(updatedLibrary));
-    setLibrary(updatedLibrary);
-  };
+  const updateLibraryItem = useCallback(
+    (imageLocation, newName) => {
+      const updatedLibrary = [...library];
+      const itemIndex = updatedLibrary.findIndex(
+        (item) => item.imageLocation === imageLocation
+      );
+      if (itemIndex !== -1) {
+        updatedLibrary[itemIndex].name = newName;
+        try {
+          localStorage.setItem("library", JSON.stringify(updatedLibrary));
+          setLibrary(updatedLibrary);
+        } catch (error) {
+          console.error("Failed to update item in localStorage:", error);
+        }
+      }
+    },
+    [library]
+  );
 
   return {
     library,

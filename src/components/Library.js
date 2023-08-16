@@ -22,6 +22,7 @@ import {
   useMaxIterations,
   useGetStateFromUrl,
   useLibraryOpen,
+  useInitialViewState,
 } from "../hooks/state";
 import { useNavigate } from "react-router-dom";
 import LibraryCard from "./LibraryCard";
@@ -30,7 +31,8 @@ const ImageViewerDialog = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const fullScreen = useMediaQuery(theme.breakpoints.down("sm"));
-  const [libraryOpen, setLibraryOpen] = useLibraryOpen()
+  const [, setInitialViewState] = useInitialViewState();
+  const [libraryOpen, setLibraryOpen] = useLibraryOpen();
 
   const [, setGradientFunction] = useGradientFunction();
   const [, setColors] = useColors();
@@ -45,10 +47,8 @@ const ImageViewerDialog = () => {
     useStore();
 
   useEffect(() => {
-    if (libraryOpen) {
-      syncLibrary();
-    }
-  }, [libraryOpen, syncLibrary]);
+    syncLibrary();
+  }, [libraryOpen]);
 
   const handleShare = ({
     viewState_,
@@ -79,21 +79,10 @@ const ImageViewerDialog = () => {
     newGradientFunction,
     newMaxIterations,
   }) => {
-    // Create a URL query string with the parameters you want to change
-    const newQuery = new URLSearchParams({
-      y: newViewState.latitude,
-      x: newViewState.longitude,
-      z: newViewState.zoom,
-      maxIterations: newMaxIterations,
-      colors: encodeColors(newColors),
-    }).toString();
-
-    // Navigate to the new URL
-    navigate(`/?${newQuery}`, { replace: true });
+    setInitialViewState(newViewState);
+    //setGradientFunction(newGradientFunction);
     setColors(newColors);
-    setGradientFunction(newGradientFunction);
-    setMaxIterations(newMaxIterations);
-    setStateFromUrl(true);
+    //setMaxIterations(newMaxIterations);
   };
 
   const handleCardClick = ({
