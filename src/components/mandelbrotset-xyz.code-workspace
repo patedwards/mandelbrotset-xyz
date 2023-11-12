@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "../.."
+		},
+		{
+			"path": "../../../mandelbrot_wasm"
+		},
+		{
+			"path": "../../../SAM-in-Browser"
+		}
+	],
+	"settings": {}
+}

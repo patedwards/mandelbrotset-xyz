@@ -27,6 +27,10 @@ import {
 import { useNavigate } from "react-router-dom";
 import LibraryCard from "./LibraryCard";
 
+// clear local storage
+// localStorage.clear();
+
+
 const ImageViewerDialog = () => {
   const theme = useTheme();
   const navigate = useNavigate();
@@ -79,10 +83,14 @@ const ImageViewerDialog = () => {
     newGradientFunction,
     newMaxIterations,
   }) => {
-    setInitialViewState(newViewState);
-    //setGradientFunction(newGradientFunction);
-    setColors(newColors);
-    //setMaxIterations(newMaxIterations);
+    console.log("handleLibrarySelect", newViewState, newColors);
+    const x = newViewState.longitude;
+    const y = newViewState.latitude;
+    const z = newViewState.zoom;
+    const newUrl = `?x=${x}&y=${y}&z=${z}&maxIterations=${newMaxIterations}&colors=${encodeColors(
+      newColors
+    )}&gradientFunction=${newGradientFunction}`;
+    navigate(newUrl);
   };
 
   const handleCardClick = ({

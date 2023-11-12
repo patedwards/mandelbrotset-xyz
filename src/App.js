@@ -18,16 +18,16 @@ import {
   useMapRef,
   useShowAlert,
   useShowControls,
-  useURLSync,
-  useUrlStateHasLoaded,
 } from "./hooks/state";
+import { InfoPanel } from "./components/InfoPanel";
 
 function App() {
-  const urlStateHasLoaded = true;
+  // get the parameters from the URL
+  const urlStateHasLoaded = true; // useUrlStateHasLoaded();
   const isMobile = useIsMobile(); // re-rendering
 
   const mapRefInit = useRef(null);
-  console.log("Rendering App");
+  
   // App state
   const theme = useTheme();
   const [showControls, setShowControls] = useShowControls();
@@ -100,6 +100,7 @@ function App() {
             <Map ref={mapRefInit} />
           </div>
           <Library />
+          <InfoPanel />
         </div>
       ) : null}
     </div>

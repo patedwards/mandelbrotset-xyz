@@ -112,6 +112,13 @@ export const createTileLayer = ({
                   colors.end.b / 255,
                 ],
               },
+              colorBlack: {
+                value: [
+                  colors.black.r / 255,
+                  colors.black.g / 255,
+                  colors.black.b / 255,
+                ],
+              },
             },
           });
 

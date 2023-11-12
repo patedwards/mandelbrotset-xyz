@@ -10,16 +10,17 @@ function hexToRgb(hex) {
     : null;
 }
 
-export const encodeColors = ({ start, middle, end }) => {
-  return `${start.hex}-${middle.hex}-${end.hex}`.replace(/#/g, "").toUpperCase();
+export const encodeColors = ({ start, middle, end, black }) => {
+  return `${start.hex}-${middle.hex}-${end.hex}-${black.hex}`.replace(/#/g, "").toUpperCase();
 };
 
 export const decodeColors = (colors) => {
   // the colors parameter is a string like "232C33-db3e00-5300eb"
-  const [start, middle, end] = colors.split("-");
+  const [start, middle, end, black] = colors.split("-");
   return {
     start: { hex: start, ...hexToRgb("#" + start) },
     middle: { hex: middle, ...hexToRgb("#" + middle) },
     end: { hex: end, ...hexToRgb("#" + end) },
+    black: { hex: black, ...hexToRgb("#" + black) },
   };
 };

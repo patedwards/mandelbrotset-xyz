@@ -2,20 +2,20 @@
 const gradientFunctions = {
   // Gradient functions that incorporate the getColor logic
   standard: (x, y, iterations, maxIterations, colors) => {
-    if (iterations === -1) return [35, 44, 51]; // Black for points inside the Mandelbrot set
+    if (iterations === -1) return [colors.black.r, colors.black.g, colors.black.b]; // Black for points inside the Mandelbrot set
     let value = iterations / maxIterations;
     return getColor(value, colors.start, colors.middle, colors.end);
   },
 
   niceGradient: (x, y, iterations, maxIterations, colors) => {
-    if (iterations === -1) return [35, 44, 51]; // Black for points inside the Mandelbrot set
+    if (iterations === -1) return [colors.black.r, colors.black.g, colors.black.b]; // Black for points inside the Mandelbrot set
     let value =
       (Math.sin((iterations / maxIterations) * Math.PI - Math.PI / 2) + 1) / 2;
     return getColor(value, colors.start, colors.middle, colors.end, 0, 1);
   },
 
   log: (x, y, iterations, maxIterations, colors) => {
-    if (iterations === -1) return [35, 44, 51]; // Black for points inside the Mandelbrot set
+    if (iterations === -1) return [colors.black.r, colors.black.g, colors.black.b]; // Black for points inside the Mandelbrot set
     let value = Math.log(iterations + 1) / Math.log(maxIterations + 1);
     return getColor(value, colors.start, colors.middle, colors.end, 0, 1);
   },
@@ -27,13 +27,13 @@ const gradientFunctions = {
   },
 
   sqrt: (x, y, iterations, maxIterations, colors) => {
-    if (iterations === -1) return [35, 44, 51]; // Black for points inside the Mandelbrot set
+    if (iterations === -1) return [colors.black.r, colors.black.g, colors.black.b]; // Black for points inside the Mandelbrot set
     let value = Math.sqrt(iterations / maxIterations);
     return getColor(value, colors.start, colors.middle, colors.end, 0, 1);
   },
 
   exponential: (x, y, iterations, maxIterations, colors) => {
-    if (iterations === -1) return [35, 44, 51]; // Black for points inside the Mandelbrot set{
+    if (iterations === -1) return [colors.black.r, colors.black.g, colors.black.b]; // Black for points inside the Mandelbrot set{
     let value = Math.pow(iterations / maxIterations, 2);
     return getColor(value, colors.start, colors.middle, colors.end);
   },

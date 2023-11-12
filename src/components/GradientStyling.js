@@ -10,6 +10,7 @@ import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import { TextField } from "@mui/material"; // Import TextField
 import { useColors, useGradientFunction } from "../hooks/state";
+// Add a new state for the Mandelbrot set color
 
 const gradientFunctions = [
   {
@@ -43,8 +44,13 @@ const gradientFunctions = [
 ];
 
 export const ColorStyler = () => {
-
-  const [colors, setColors ] = useColors()
+  const [colors, setColors] = useColors();
+  const [blackColor, setBlackColor] = useState({
+    r: 0,
+    g: 0,
+    b: 0,
+    hex: "#000000",
+  });
 
   const [chosen, setChosen] = useState(null);
   const [showBigPicker, setShowBigPicker] = useState(false);
@@ -142,6 +148,32 @@ export const ColorStyler = () => {
               {key !== "end" && <ArrowForwardIcon color="#fefefe" />}
             </React.Fragment>
           ))}
+        </Stack>
+        <Stack
+          direction="row"
+          alignItems="center"
+          spacing={0}
+          justifyContent="center"
+        >
+          <IconButton
+            onClick={() => setChosen(chosen === "black" ? null : "black")}
+            style={{
+              backgroundColor: chosen === "black" ? "#eee" : "transparent",
+            }}
+          >
+            <SquareIcon sx={{ color: blackColor.hex }} />
+          </IconButton>
+          <TextField
+            size="small"
+            variant="standard"
+            value={blackColor.hex}
+            onFocus={() => setChosen("black")}
+            onChange={(e) =>
+              setBlackColor({ ...blackColor, hex: e.target.value })
+            }
+            inputProps={{ maxLength: 7 }} // #RRGGBB format
+            sx={{ width: "80px" }} // Control the width here
+          />
         </Stack>
         {chosen && (
           <>

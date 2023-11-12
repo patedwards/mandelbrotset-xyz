@@ -14,9 +14,10 @@ export const fragmentShader = `
   uniform vec3 colorA;
   uniform vec3 colorB;
   uniform vec3 colorC;
+  uniform vec3 colorBlack;
 
   vec3 getColor(float iterations) {
-    if (iterations == maxIterations) return vec3(0.0);
+    if (iterations == maxIterations) return vec3(colorBlack);
 
     
     float t = iterations / maxIterations;

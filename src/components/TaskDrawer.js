@@ -1,5 +1,6 @@
 import LibraryIcon from "@mui/icons-material/Collections";
 import PaletteIcon from "@mui/icons-material/Palette";
+import InfoIcon from "@mui/icons-material/Info";
 import SnapIcon from "@mui/icons-material/Save";
 import useMediaQuery from "@mui/material/useMediaQuery";
 
@@ -19,6 +20,7 @@ import {
   useShowAlert,
   useShowControls,
   useLibraryOpen,
+  useShowInfo
 } from "../hooks/state";
 
 const Task = (task) => {
@@ -86,6 +88,7 @@ export default function TaskDrawer() {
   const [showControls, setShowControls] = useShowControls();
   const [, setShowAlert] = useShowAlert();
   const [, setLibraryOpen] = useLibraryOpen();
+  const [showInfo, setShowInfo] = useShowInfo();
   const theme = useTheme();
   const [mapRef] = useMapRef();
 
@@ -108,9 +111,18 @@ export default function TaskDrawer() {
 
   const tasks = [
     {
+      label: "Info",
+      onClick: () => {
+        setShowInfo(!showInfo);
+        setShowControls(false);
+      },
+      icon: InfoIcon,
+    },
+    {
       label: "Style",
       onClick: () => {
         setShowControls(!showControls);
+        setShowInfo(false);
       },
       icon: PaletteIcon,
     },

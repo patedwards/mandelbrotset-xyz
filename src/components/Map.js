@@ -10,23 +10,29 @@ import {
 import DeckGL from "@deck.gl/react";
 
 import { useStore } from "../hooks/store";
-import { useTileLayer, useInitialViewState } from "../hooks/state";
+import { useTileLayer, useInitialViewState, useX, useY, useZ } from "../hooks/state";
 
 const Map = forwardRef(({}, ref) => {
   const [initialViewState] = useInitialViewState();
-  const [deckViewState, setDeckViewState] = useState(null);
   const deckViewStateRef = useRef(null);
-
-  console.log("Rendering Map", initialViewState);
-
-  const { addLibraryItem } = useStore();
   const layer = useTileLayer();
+  const { addLibraryItem } = useStore();  
+  const [, setX] = useX();
+  const [, setY] = useY();
+  const [, setZ] = useZ();
 
   const deckRef = useRef();
 
   const [isDeckLoaded, setIsDeckLoaded] = useState(false);
   const [captureThumbnail, setCaptureThumbnail] = useState(false);
   const [captureHD, setCaptureHD] = useState(false);
+
+  const handleViewStateChange = ({ viewState }) => {
+    setX(viewState.longitude);
+    setY(viewState.latitude);
+    setZ(viewState.zoom);
+    deckViewStateRef.current = viewState;
+  }
 
   useEffect(() => {
     if (deckRef.current && deckRef.current.deck) {
@@ -126,6 +132,7 @@ const Map = forwardRef(({}, ref) => {
       initialViewState={initialViewState}
       onViewStateChange={({ viewState }) => {
         deckViewStateRef.current = viewState;
+        handleViewStateChange({ viewState });
       }}
       layers={[layer]}
       onWebGLInitialized={setIsDeckLoaded}
