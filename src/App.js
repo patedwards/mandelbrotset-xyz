@@ -20,11 +20,14 @@ import {
   useShowControls,
 } from "./hooks/state";
 import { InfoPanel } from "./components/InfoPanel";
+import init from "wasm-lib";
 
 function App() {
   // get the parameters from the URL
   const urlStateHasLoaded = true; // useUrlStateHasLoaded();
   const isMobile = useIsMobile(); // re-rendering
+
+  init() // init wasm
 
   const mapRefInit = useRef(null);
   
@@ -84,7 +87,7 @@ function App() {
               variant="filled"
               onClose={() => setShowAlert(false)}
             >
-              Image saved to library
+              Image saved to library!
             </Alert>
           </Snackbar>
           <TaskDrawer />

@@ -1,33 +1,3 @@
-import { Mesh, PlaneGeometry, Scene, ShaderMaterial } from "three";
-
-export const setupWebGLRenderer = (
-  vertexShader,
-  fragmentShader,
-  maxIterations,
-  colors,
-  bounds
-) => {
-  const geometry = new PlaneGeometry(2, 2);
-
-  const material = new ShaderMaterial({
-    vertexShader,
-    fragmentShader,
-    uniforms: {
-      maxIterations: { value: maxIterations },
-      mandelbrotBounds: { value: bounds },
-      colorA: { value: colors.start },
-      colorB: { value: colors.middle },
-      colorC: { value: colors.end },
-    },
-  });
-
-  const mesh = new Mesh(geometry, material);
-  const scene = new Scene();
-  scene.add(mesh);
-
-  return { scene, mesh };
-};
-
 export const createTileImage = (width, height) => {
   // Create a canvas element
   const canvas = document.createElement("canvas");

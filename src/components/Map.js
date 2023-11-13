@@ -12,7 +12,7 @@ import DeckGL from "@deck.gl/react";
 import { useStore } from "../hooks/store";
 import { useTileLayer, useInitialViewState, useX, useY, useZ } from "../hooks/state";
 
-const Map = forwardRef(({}, ref) => {
+const Map = forwardRef((_, ref) => {
   const [initialViewState] = useInitialViewState();
   const deckViewStateRef = useRef(null);
   const layer = useTileLayer();
@@ -41,12 +41,12 @@ const Map = forwardRef(({}, ref) => {
   }, []);
 
   useImperativeHandle(ref, () => ({
-    captureThumbnail: async () => {
+    captureThumbnail: async (url) => {
       if (!isDeckLoaded) {
         console.error("DeckGL is not loaded yet");
         return;
       }
-      setCaptureThumbnail(true); // add this line
+      setCaptureThumbnail({ready: true, url}); // add this line
     },
     captureHD: async () => {
       if (!isDeckLoaded) {
@@ -69,8 +69,7 @@ const Map = forwardRef(({}, ref) => {
 
       setCaptureHD(false); // add this line
     }
-    if (captureThumbnail) {
-      console.log("captureThumbnail");
+    if (captureThumbnail.ready) {
       const deck = deckRef.current.deck;
       const canvas = deck.canvas;
 
@@ -110,17 +109,15 @@ const Map = forwardRef(({}, ref) => {
       // Save the image and viewState separately as strings
       localStorage.setItem(imageLocation, base64Image);
 
-      console.log("layer", layer, layer.props.parameters);
 
       // Update the library
       const newItem = {
         imageLocation,
-        viewState: deckViewStateRef.current,
-        ...layer.props.parameters,
+        url: captureThumbnail.url,
       };
       addLibraryItem(newItem);
 
-      setCaptureThumbnail(false);
+      setCaptureThumbnail({ready: false});
     }
   };
 

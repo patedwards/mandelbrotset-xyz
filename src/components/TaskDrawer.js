@@ -20,7 +20,8 @@ import {
   useShowAlert,
   useShowControls,
   useLibraryOpen,
-  useShowInfo
+  useShowInfo,
+  useStateUrl
 } from "../hooks/state";
 
 const Task = (task) => {
@@ -83,7 +84,6 @@ const Task = (task) => {
 };
 
 export default function TaskDrawer() {
-  console.log("Rendering task drawer")
   const isMobileScreen = useIsMobile();
   const [showControls, setShowControls] = useShowControls();
   const [, setShowAlert] = useShowAlert();
@@ -91,10 +91,11 @@ export default function TaskDrawer() {
   const [showInfo, setShowInfo] = useShowInfo();
   const theme = useTheme();
   const [mapRef] = useMapRef();
+  const url = useStateUrl()
 
   const handleSaveButtonClick = () => {
     if (mapRef.current) {
-      mapRef.current.captureThumbnail();
+      mapRef.current.captureThumbnail(url);
     }
 
     // !! This exists in hooks/state.js

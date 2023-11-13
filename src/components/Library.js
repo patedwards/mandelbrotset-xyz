@@ -16,32 +16,15 @@ import CloseIcon from "@mui/icons-material/Close";
 import { encodeColors } from "../utilities/colors";
 
 import { useStore } from "../hooks/store";
-import {
-  useGradientFunction,
-  useColors,
-  useMaxIterations,
-  useGetStateFromUrl,
-  useLibraryOpen,
-  useInitialViewState,
-} from "../hooks/state";
+import { useLibraryOpen } from "../hooks/state";
 import { useNavigate } from "react-router-dom";
 import LibraryCard from "./LibraryCard";
-
-// clear local storage
-// localStorage.clear();
-
 
 const ImageViewerDialog = () => {
   const theme = useTheme();
   const navigate = useNavigate();
   const fullScreen = useMediaQuery(theme.breakpoints.down("sm"));
-  const [, setInitialViewState] = useInitialViewState();
   const [libraryOpen, setLibraryOpen] = useLibraryOpen();
-
-  const [, setGradientFunction] = useGradientFunction();
-  const [, setColors] = useColors();
-  const [, setMaxIterations] = useMaxIterations();
-  const [, setStateFromUrl] = useGetStateFromUrl();
 
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedSnap, setSelectedSnap] = useState(null);
@@ -52,7 +35,7 @@ const ImageViewerDialog = () => {
 
   useEffect(() => {
     syncLibrary();
-  }, [libraryOpen]);
+  }, [libraryOpen, syncLibrary]);
 
   const handleShare = ({
     viewState_,
@@ -77,35 +60,14 @@ const ImageViewerDialog = () => {
     navigator.clipboard.writeText(fullURL);
   };
 
-  const handleLibrarySelect = ({
-    newViewState,
-    newColors,
-    newGradientFunction,
-    newMaxIterations,
-  }) => {
-    console.log("handleLibrarySelect", newViewState, newColors);
-    const x = newViewState.longitude;
-    const y = newViewState.latitude;
-    const z = newViewState.zoom;
-    const newUrl = `?x=${x}&y=${y}&z=${z}&maxIterations=${newMaxIterations}&colors=${encodeColors(
-      newColors
-    )}&gradientFunction=${newGradientFunction}`;
-    navigate(newUrl);
+  const handleLibrarySelect = ({ url }) => {
+    console.log("handleLibrarySelect", url);
+    navigate(url);
   };
 
-  const handleCardClick = ({
-    viewState,
-    maxIterations,
-    colors,
-    gradientFunction,
-  }) => {
+  const handleCardClick = ({ url }) => {
     // Set the viewState when a card is clicked
-    handleLibrarySelect({
-      newViewState: viewState,
-      newColors: colors,
-      newGradientFunction: gradientFunction,
-      newMaxIterations: maxIterations,
-    });
+    handleLibrarySelect({ url });
     setLibraryOpen(false);
   };
 

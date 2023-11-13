@@ -31,3 +31,5 @@ yarn-error.log*
 .gitignore.swp
 firebase.json
  
+# all the target/wasm32-unknown-unknown files
+target

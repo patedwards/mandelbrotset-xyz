@@ -10,6 +10,7 @@ import {
     useY,
     useZ,
     useGradientFunction,
+    useStateUrl
 } from "../hooks/state";
 import { encodeColors } from "../utilities/colors";
 
@@ -21,18 +22,15 @@ export const InfoPanel = () => {
     const [maxIterations] = useMaxIterations();
     const [gradientFunction] = useGradientFunction();
     const [colors] = useColors();
-    const [url, setUrl] = useState(null);
+    const url = useStateUrl()
     const [displayUrl, setDisplayUrl] = useState(null);
 
     useEffect(() => {
         const baseUrl = window.location.origin;
-        setUrl(
-            `${baseUrl}/?x=${x}&y=${y}&z=${z}&maxIterations=${maxIterations}&colors=${encodeColors(colors)}&gradientFunction=${gradientFunction}`
-        );
         setDisplayUrl(
             `${baseUrl}/?\nx=${x}&\ny=${y}&\nz=${z}&\nmaxIterations=${maxIterations}&\ncolors=${encodeColors(colors)}&\ngradientFunction=${gradientFunction}`
         );
-    }, [x, y, z, maxIterations, colors]);
+    }, [x, y, z, maxIterations, colors, gradientFunction]);
 
     const handleCopyUrl = () => {
         navigator.clipboard.writeText(url);

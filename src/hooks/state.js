@@ -2,11 +2,15 @@
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { atom, useAtom } from "jotai";
-import { useCallback, useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { decodeColors, encodeColors } from "../utilities/colors";
-import { createTileLayer } from "../utilities/deck";
-import { colors } from "@mui/material";
+import { createTileLayer as createTileLayerJs } from "../layers/TileLayerPureJS";
+import { createTileLayer as createTileLayerGl } from "../layers/TileLayerGL";
+import { createTileLayer as createTileLayerRust } from "../layers/TileLayerRustWASM";
+
+// Todo: zoom-to-infinity
+const MAX_ZOOM = 23.8;
 
 // Atoms: Global settings
 const getStateFromUrlAtom = atom(true);
@@ -20,18 +24,17 @@ const libraryOpenAtom = atom(false);
 const showControlsAtom = atom(false);
 
 const mapRefAtom = atom(null);
-const urlStateAtom = atom(null);
-export const xAtom = atom(-0.48);
-export const yAtom = atom(0);
-export const zAtom = atom(5);
-export const maxIterationsAtom = atom(60);
-export const colorsAtom = atom({
+const xAtom = atom(-0.48);
+const yAtom = atom(0);
+const zAtom = atom(5);
+const maxIterationsAtom = atom(60);
+const colorsAtom = atom({
   start: { r: 44, g: 0, b: 30, hex: "#2C001E" },
   middle: { r: 233, g: 84, b: 32, hex: "#E95420" },
   end: { r: 255, g: 255, b: 255, hex: "#FFFFFF" },
-  black: { r: 0, g: 0, b: 0, hex: "#ff0000" },
+  black: { r: 0, g: 0, b: 0, hex: "#000000" },
 });
-export const gradientFunctionAtom = atom("standard");
+const gradientFunctionAtom = atom("standard");
 
 // Basic hooks
 export const useShowAlert = () => useAtom(showAlertAtom);
@@ -60,12 +63,25 @@ export const useGradientFunction = () => useAtom(gradientFunctionAtom);
 // then use the scaling function
 export const useMaxIterations = () => {
   const [maxIterations, setMaxIterations] = useAtom(maxIterationsAtom);
+  const [max, setMax] = useState(maxIterations);
+
   const [autoScaleMaxIterations] = useAutoScaleMaxIterations();
   const [z] = useZ();
 
-  return [autoScaleMaxIterations ? Math.floor(10 * z ** 2) : maxIterations, setMaxIterations]
-}
+  useEffect(() => {
+    const idealMaxIterations = Math.floor(10 * z ** 2);
+    // only update max at zoom levels that more than 20% from the ideal,
+    // this reduces re-making the TileLayer
+    if (
+      autoScaleMaxIterations &&
+      Math.abs(max - idealMaxIterations) > 0.2 * idealMaxIterations
+    ) {
+      setMax(Math.floor(10 * z ** 2));
+    }
+  }, [z, max, autoScaleMaxIterations, maxIterations]);
 
+  return [autoScaleMaxIterations ? max : maxIterations, setMaxIterations];
+};
 
 export const useInitialViewState = () => {
   const [searchParams] = useSearchParams();
@@ -95,8 +111,17 @@ export const useInitialViewState = () => {
     searchParams.delete("maxIterations");
     window.history.replaceState({}, "", "?" + searchParams.toString());
 
-    return [{ longitude: x, latitude: y, zoom: z, bearing:  0, pitch: 0, maxZoom: Infinity}];
-  }, [searchParams]); // Dependency array
+    return [
+      {
+        longitude: x,
+        latitude: y,
+        zoom: z,
+        bearing: 0,
+        pitch: 0,
+        maxZoom: MAX_ZOOM,
+      },
+    ];
+  }, [searchParams, setColors, setGradientFunction, setMaxIterations]);
 };
 
 // Complex hooks
@@ -105,25 +130,37 @@ export const useTileLayer = () => {
   const [maxIterations] = useMaxIterations();
   const [colors] = useColors();
   const [gradientFunction] = useGradientFunction();
-  const [glIsToggled] = useGL();
-  const [z,] = useZ();
+  const [createTileLayer, setCreateTileLayer] = useState(() => createTileLayerGl);
 
-  const glIsUsed = glIsToggled && z < 30 && gradientFunction === "standard";
+  useEffect(() => {
+    setCreateTileLayer(
+      gradientFunction === "standard" ? 
+      () => createTileLayerGl : 
+      gradientFunction === "rust" ? 
+      () => createTileLayerRust :
+      () => createTileLayerJs
+    );
+  }, [gradientFunction]);
 
   return useMemo(() => {
     return createTileLayer({
       maxIterations,
       colors,
       gradientFunction,
-      glIsUsed,
+      maxZoom: MAX_ZOOM,
     });
-  }, [maxIterations, colors, gradientFunction, glIsUsed]);
+  }, [maxIterations, colors, gradientFunction, createTileLayer]);
 };
 
-export const useUrlStateHasLoaded = () => {
-  const [urlState] = useAtom(urlStateAtom);
+export const useStateUrl = () => {
+  const [x] = useX();
+  const [y] = useY();
+  const [z] = useZ();
+  const [maxIterations] = useMaxIterations();
+  const [gradientFunction] = useGradientFunction();
+  const [colors] = useColors();
 
-  // useMemo will ensure that the returned value will be stable as long as the
-  // condition (urlState !== null) does not change, thus preventing unnecessary re-renders.
-  return useMemo(() => urlState !== null, [urlState]);
+  return `/?x=${x}&y=${y}&z=${z}&maxIterations=${maxIterations}&colors=${encodeColors(
+    colors
+  )}&gradientFunction=${gradientFunction}`;
 };

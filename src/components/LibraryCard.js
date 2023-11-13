@@ -35,7 +35,6 @@ const LibraryCard = ({
   const [isHovered, setIsHovered] = useState(false);
   const theme = useTheme(); // Use the theme to access predefined color values
 
-  console.log("Snapshot: ", snap);
   return (
     <Card
       onMouseEnter={() => setIsHovered(true)}
@@ -92,10 +91,7 @@ const LibraryCard = ({
               size="small"
               onClick={() =>
                 handleShare({
-                  viewState_: snap.viewState,
-                  colors_: snap.colors,
-                  maxIterations: snap.maxIterations,
-                  gradientFunction_: snap.gradientFunction,
+                  url: snap.url
                 })
               }
               sx={{

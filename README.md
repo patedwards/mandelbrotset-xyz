@@ -34,3 +34,20 @@ Run `npm install`
 
 npm run build
 firebase deploy
+
+## Todos:
+
+Search for the name e.g "TODO: bring-back-gradient-function" to find the part of code that might just be commented out to bring back
+
+### Small:
+
+Add other gradient functions to GL so they're fast as well
+
+### Medium
+
+zoom-to-infinity: this could be large if you do it with rust, but you can always just revert to doing the calcs on JS, they're faster than the bad rust implementation you have now - just need to make the maxIterations a little less aggressive and look for some other optimizations
+
+
+### Large
+
+Rendering outside of GL: Beyond zoom 24, GL starts to run into numerical precision errors. So maxZoom is 23.8 rather than Infinity. Alternative is to use Rust via WASM. But theres's a bottleneck with passing data. Look into making the rust code more efficient, and some memory sharing strategies with Rust. 

@@ -1,46 +1,40 @@
-const TILE_SIZE = 256;
-const lonCache = {};
-const latCache = {};
-
 function evaluateMandelbrot(x0, y0, maxIterations) {
-  let x = 0.0, y = 0.0, xx = 0.0, yy = 0.0;
-
+  let x = 0.0;
+  let y = 0.0;
+  // Perform Mandelbrot set iterations
   for (let iteration = 0; iteration < maxIterations; iteration++) {
+    let xNew = x * x - y * y + x0;
     y = 2 * x * y + y0;
-    x = xx - yy + x0;
-    xx = x * x;
-    yy = y * y;
+    x = xNew;
 
-    if (xx + yy > 4.0) {
+    // If escaped
+    if (x * x + y * y > 2.0) {
       return [x, y, iteration];
     }
   }
-
+  // If failed, set color to black
   return [-1, -1, -1];
 }
 
-
 export function makeMandelbrot(x, y, zoom, maxIterations) {
-  
-  const lonFromKey = `x:${x}-z:${zoom}`;
-  const lonToKey = `x:${x + 1}-z:${zoom}`;
-  const latFromKey = `y:${y + 1}-z:${zoom}`;
-  const latToKey = `y:${y}-z:${zoom}`;
+  const TILE_SIZE = 256;
+  const height = TILE_SIZE;
+  const width = TILE_SIZE;
 
-  const lonFrom = lonCache[lonFromKey] ?? (lonCache[lonFromKey] = tile2lon(x, zoom));
-  const lonTo = lonCache[lonToKey] ?? (lonCache[lonToKey] = tile2lon(x + 1, zoom));
-  const latFrom = latCache[latFromKey] ?? (latCache[latFromKey] = tile2lat(y + 1, zoom));
-  const latTo = latCache[latToKey] ?? (latCache[latToKey] = tile2lat(y, zoom));
+  const lonFrom = tile2lon(x, zoom);
+  const lonTo = tile2lon(x + 1, zoom);
+  const latFrom = tile2lat(y + 1, zoom);
+  const latTo = tile2lat(y, zoom);
 
-  const lonStep = (lonTo - lonFrom) / TILE_SIZE;
-  const latStep = (latTo - latFrom) / TILE_SIZE;
+  const lonStep = (lonTo - lonFrom) / width;
+  const latStep = (latTo - latFrom) / height;
 
   const image = [];
-  for (let j = 0; j < TILE_SIZE; j++) {
+  for (let j = 0; j < height; j++) {
     let row = [];
-    for (let i = 0; i < TILE_SIZE; i++) {
+    for (let i = 0; i < width; i++) {
       let x0 = i * lonStep + lonFrom;
-      let y0 = (TILE_SIZE - 1 - j) * latStep + latFrom; // Inverting j here
+      let y0 = (height - 1 - j) * latStep + latFrom; // Inverting j here
 
       let [x, y, iterations] = evaluateMandelbrot(x0, y0, maxIterations);
       row.push([x, y, iterations]);
