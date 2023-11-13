@@ -52,9 +52,20 @@ export const useGL = () => useAtom(glTimeAtom);
 export const useX = () => useAtom(xAtom);
 export const useY = () => useAtom(yAtom);
 export const useZ = () => useAtom(zAtom);
-export const useMaxIterations = () => useAtom(maxIterationsAtom);
+//export const useMaxIterations = () => useAtom(maxIterationsAtom);
 export const useColors = () => useAtom(colorsAtom);
 export const useGradientFunction = () => useAtom(gradientFunctionAtom);
+
+// make useMaxIterations work by either using the atom, or if useAutoScaleMaxIterations is true,
+// then use the scaling function
+export const useMaxIterations = () => {
+  const [maxIterations, setMaxIterations] = useAtom(maxIterationsAtom);
+  const [autoScaleMaxIterations] = useAutoScaleMaxIterations();
+  const [z] = useZ();
+
+  return [autoScaleMaxIterations ? Math.floor(10 * z ** 2) : maxIterations, setMaxIterations]
+}
+
 
 export const useInitialViewState = () => {
   const [searchParams] = useSearchParams();
@@ -97,7 +108,7 @@ export const useTileLayer = () => {
   const [glIsToggled] = useGL();
   const [z,] = useZ();
 
-  const glIsUsed = glIsToggled && z < 20 && gradientFunction === "standard";
+  const glIsUsed = glIsToggled && z < 30 && gradientFunction === "standard";
 
   return useMemo(() => {
     return createTileLayer({

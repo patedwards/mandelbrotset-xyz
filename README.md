@@ -29,3 +29,8 @@ Run `npm install`
 1. From within mandelbrotset-xyz, run `npm start`
 2. Open your browser and navigate to http://localhost:3000.
 3. Explore the Mandelbrot set!
+
+## Deploy
+
+npm run build
+firebase deploy
