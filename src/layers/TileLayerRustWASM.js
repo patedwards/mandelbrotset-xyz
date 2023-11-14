@@ -1,47 +1,39 @@
 import { TileLayer } from "@deck.gl/geo-layers";
 import { BitmapLayer } from "@deck.gl/layers";
 
-import { make_mandelbrot_flat as make_mandelbrot } from "wasm-lib";
+import { evaluate_mandelbrot_grayscale } from "wasm-lib";
 
 import { mandelbrotPixelTransform } from "../utilities/mandelbrotUtils";
 import { convertDataToPixels, createTileImage } from "../utilities/webglUtils";
 
-function unflattenArray(flatArray, width, height) {
-  const unflattened = [];
-  for (let i = 0; i < height; i++) {
-    const row = [];
-    for (let j = 0; j < width; j++) {
-      // Each element in the original array was a tuple of 3 values
-      const index = (i * width + j) * 3;
-      const tuple = [
-        flatArray[index],
-        flatArray[index + 1],
-        flatArray[index + 2],
-      ];
-      row.push(tuple);
-    }
-    unflattened.push(row);
-  }
-  return unflattened;
-}
+export function makeMandelbrot(x, y, zoom, maxIterations) {
+  const TILE_SIZE = 256;
+  const height = TILE_SIZE;
+  const width = TILE_SIZE;
 
-const makeMandelbrotRust = (x, y, z, maxIterations) => {
-  const flatData = make_mandelbrot(x, y, z, maxIterations);
-  const width = 256;
-  const height = 256;
-  const startTime = performance.now(); // Start timing
-  const data = unflattenArray(flatData, width, height);
-  const endTime = performance.now(); // End timing
-  // http://localhost:3000/?x=-0.06591245268902371&y=0.8391493518636882&z=14.059764180237806&maxIterations=60&colors=2C001E-E95420-FFFFFF-FF0000&gradientFunction=standard
-  console.log(
-    x,
-    y,
-    z,
-    maxIterations,
-    `makeMandelbrotJs execution time: ${endTime - startTime} ms`
-  ); // Log execution time
-  return data;
-};
+  const lonFrom = tile2lon(x, zoom);
+  const lonTo = tile2lon(x + 1, zoom);
+  const latFrom = tile2lat(y + 1, zoom);
+  const latTo = tile2lat(y, zoom);
+
+  const lonStep = (lonTo - lonFrom) / width;
+  const latStep = (latTo - latFrom) / height;
+
+  const image = [];
+  for (let j = 0; j < height; j++) {
+    let row = [];
+    for (let i = 0; i < width; i++) {
+      let x0 = i * lonStep + lonFrom;
+      let y0 = (height - 1 - j) * latStep + latFrom; // Inverting j here
+
+      let g = evaluate_mandelbrot_grayscale(x0, y0, maxIterations);
+      row.push([g, 0, 0]);
+    }
+    image.push(row);
+  }
+
+  return image;
+}
 
 export const createTileLayer = ({
   maxIterations,
@@ -56,15 +48,12 @@ export const createTileLayer = ({
     tileSize: 256,
     parameters: {
       maxIterations,
-      colors,
-      gradientFunction,
-      glIsUsed,
     },
     updateTriggers: {
-      getTileData: { maxIterations, colors, gradientFunction, glIsUsed },
+      getTileData: { maxIterations },
     },
     getTileData: ({ x, y, z }) => {
-      const data = makeMandelbrotRust(x, y, z, maxIterations);
+      const data = makeMandelbrot(x, y, z, maxIterations);
 
       const { ctx, imageData } = createTileImage(256, 256);
       convertDataToPixels(data, imageData, (x, y, iterations) =>
@@ -74,7 +63,6 @@ export const createTileLayer = ({
           iterations,
           maxIterations,
           gradientFunction,
-          colors
         )
       );
 
@@ -99,3 +87,14 @@ export const createTileLayer = ({
     },
   });
 };
+
+// Convert tile coordinate to longitude
+function tile2lon(x, z) {
+  return (x / Math.pow(2, z)) * 360 - 180;
+}
+
+// Convert tile coordinate to latitude
+function tile2lat(y, z) {
+  let n = Math.PI - (2 * Math.PI * y) / Math.pow(2, z);
+  return (180 / Math.PI) * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n)));
+}

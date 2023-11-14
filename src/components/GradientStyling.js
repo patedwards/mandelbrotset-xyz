@@ -18,6 +18,10 @@ const gradientFunctions = [
     name: "standard",
   },
   {
+    label: "Fast grayscale",
+    name: "rust",
+  },
+  {
     label: "Linear Gradient",
     name: "niceGradient",
   },

@@ -10,7 +10,7 @@ import { createTileLayer as createTileLayerGl } from "../layers/TileLayerGL";
 import { createTileLayer as createTileLayerRust } from "../layers/TileLayerRustWASM";
 
 // Todo: zoom-to-infinity
-const MAX_ZOOM = 23.8;
+const MAX_ZOOM = 25
 
 // Atoms: Global settings
 const getStateFromUrlAtom = atom(true);

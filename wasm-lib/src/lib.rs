@@ -1,6 +1,7 @@
 use wasm_bindgen::prelude::*;
 
-fn evaluate_mandelbrot(x0: f64, y0: f64, max_iterations: u32) -> (f64, f64, i32) {
+#[wasm_bindgen]
+pub fn evaluate_mandelbrot_grayscale(x0: f64, y0: f64, max_iterations: u32) -> f64 {
     let mut x = 0.0;
     let mut y = 0.0;
 
@@ -10,11 +11,13 @@ fn evaluate_mandelbrot(x0: f64, y0: f64, max_iterations: u32) -> (f64, f64, i32)
         x = x_new;
 
         if x * x + y * y > 4.0 {
-            return (x, y, iteration as i32);
+            // return a single normalized value for grayscale color
+            return iteration as f64 / max_iterations as f64;
+            
         }
     }
 
-    (-1.0, -1.0, -1)
+    0.0
 }
 
 // Define a static mutable buffer. Make sure it's large enough.

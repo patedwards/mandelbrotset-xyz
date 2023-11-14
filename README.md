@@ -51,3 +51,5 @@ zoom-to-infinity: this could be large if you do it with rust, but you can always
 ### Large
 
 Rendering outside of GL: Beyond zoom 24, GL starts to run into numerical precision errors. So maxZoom is 23.8 rather than Infinity. Alternative is to use Rust via WASM. But theres's a bottleneck with passing data. Look into making the rust code more efficient, and some memory sharing strategies with Rust. 
+
+Consider something like this: https://github.com/richardanaya/pong/
