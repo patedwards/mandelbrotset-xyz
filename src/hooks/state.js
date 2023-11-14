@@ -26,7 +26,7 @@ const showControlsAtom = atom(false);
 const mapRefAtom = atom(null);
 const xAtom = atom(-0.48);
 const yAtom = atom(0);
-const zAtom = atom(5);
+const zAtom = atom(15);
 const maxIterationsAtom = atom(60);
 const colorsAtom = atom({
   start: { r: 44, g: 0, b: 30, hex: "#2C001E" },
@@ -76,7 +76,7 @@ export const useMaxIterations = () => {
       autoScaleMaxIterations &&
       Math.abs(max - idealMaxIterations) > 0.2 * idealMaxIterations
     ) {
-      setMax(Math.floor(10 * z ** 2));
+      setMax(Math.floor(1 * z ** 2.5));
     }
   }, [z, max, autoScaleMaxIterations, maxIterations]);
 
@@ -90,9 +90,9 @@ export const useInitialViewState = () => {
   const [, setMaxIterations] = useMaxIterations();
 
   return useMemo(() => {
-    const x = parseFloat(searchParams.get("x") || -0.48);
-    const y = parseFloat(searchParams.get("y") || 0);
-    const z = parseFloat(searchParams.get("z") || 5);
+    const x = parseFloat(searchParams.get("x") || 0.3324769434398682);
+    const y = parseFloat(searchParams.get("y") || 0.07645044256287752);
+    const z = parseFloat(searchParams.get("z") || 8.383395990576519);
     const colorsFromUrl = searchParams.get("colors");
     const gradientFunctionFromUrl = searchParams.get("gradientFunction");
     const maxIterationsFromUrl = searchParams.get("maxIterations");
