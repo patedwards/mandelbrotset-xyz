@@ -1,0 +1,17 @@
+# Cloudflare Pages headers.
+
+# Webpack hashes everything under /static/ (JS, CSS, and the .wasm in
+# /static/media/), so it's safe to cache forever.
+/static/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Always revalidate the HTML shell so new deploys take effect immediately.
+/index.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+# To enable SharedArrayBuffer-backed WASM threading later (wasm-bindgen-rayon),
+# uncomment the block below. Cross-origin isolation requires every cross-origin
+# subresource to be CORS-/CORP-clean, so verify the app still works first.
+# /*
+#   Cross-Origin-Opener-Policy: same-origin
+#   Cross-Origin-Embedder-Policy: require-corp

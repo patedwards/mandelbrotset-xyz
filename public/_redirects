@@ -1,0 +1,3 @@
+# SPA fallback for Cloudflare Pages: the app is a single page (state lives in
+# query params), so every path serves index.html.
+/*    /index.html   200

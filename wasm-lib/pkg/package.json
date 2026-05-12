@@ -1,0 +1,20 @@
+{
+  "name": "wasm-lib",
+  "description": "Rust/WASM Mandelbrot tile renderer for mandelbrotset.xyz",
+  "version": "0.1.0",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/patedwards/mandelbrotset-xyz"
+  },
+  "files": [
+    "wasm_lib_bg.wasm",
+    "wasm_lib.js",
+    "wasm_lib.d.ts"
+  ],
+  "module": "wasm_lib.js",
+  "types": "wasm_lib.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
