@@ -1,0 +1,5 @@
+# Enable WebAssembly SIMD (simd128) only for the wasm target so the host-side
+# `cargo test` build is unaffected. LLVM autovectorises some of the inner loops
+# with this on; hand-written core::arch::wasm32 SIMD comes in a later phase.
+[target.wasm32-unknown-unknown]
+rustflags = ["-C", "target-feature=+simd128"]

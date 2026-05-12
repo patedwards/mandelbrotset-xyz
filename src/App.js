@@ -20,14 +20,14 @@ import {
   useShowControls,
 } from "./hooks/state";
 import { InfoPanel } from "./components/InfoPanel";
-import init from "wasm-lib";
 
 function App() {
   // get the parameters from the URL
   const urlStateHasLoaded = true; // useUrlStateHasLoaded();
   const isMobile = useIsMobile(); // re-rendering
 
-  init() // init wasm
+  // WASM is loaded on demand by the tile worker pool (see workers/tilePool.js)
+  // and, as a fallback, by the Rust/WASM tile layer on the main thread.
 
   const mapRefInit = useRef(null);
   
