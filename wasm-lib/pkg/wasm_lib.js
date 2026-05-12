@@ -1,12 +1,39 @@
 let wasm;
 
+const cachedTextDecoder = (typeof TextDecoder !== 'undefined' ? new TextDecoder('utf-8', { ignoreBOM: true, fatal: true }) : { decode: () => { throw Error('TextDecoder not available') } } );
+
+if (typeof TextDecoder !== 'undefined') { cachedTextDecoder.decode(); };
+
+let cachedUint8Memory0 = null;
+
+function getUint8Memory0() {
+    if (cachedUint8Memory0 === null || cachedUint8Memory0.byteLength === 0) {
+        cachedUint8Memory0 = new Uint8Array(wasm.memory.buffer);
+    }
+    return cachedUint8Memory0;
+}
+
+function getStringFromWasm0(ptr, len) {
+    ptr = ptr >>> 0;
+    return cachedTextDecoder.decode(getUint8Memory0().subarray(ptr, ptr + len));
+}
+
 const heap = new Array(128).fill(undefined);
 
 heap.push(undefined, null, true, false);
 
-function getObject(idx) { return heap[idx]; }
-
 let heap_next = heap.length;
+
+function addHeapObject(obj) {
+    if (heap_next === heap.length) heap.push(heap.length + 1);
+    const idx = heap_next;
+    heap_next = heap[idx];
+
+    heap[idx] = obj;
+    return idx;
+}
+
+function getObject(idx) { return heap[idx]; }
 
 function dropObject(idx) {
     if (idx < 132) return;
@@ -28,15 +55,6 @@ export function __wasm_start() {
 }
 
 let WASM_VECTOR_LEN = 0;
-
-let cachedUint8Memory0 = null;
-
-function getUint8Memory0() {
-    if (cachedUint8Memory0 === null || cachedUint8Memory0.byteLength === 0) {
-        cachedUint8Memory0 = new Uint8Array(wasm.memory.buffer);
-    }
-    return cachedUint8Memory0;
-}
 
 const cachedTextEncoder = (typeof TextEncoder !== 'undefined' ? new TextEncoder('utf-8') : { encode: () => { throw Error('TextEncoder not available') } } );
 
@@ -165,6 +183,88 @@ export function render_tile(west, south, east, north, width, height, max_iterati
 }
 
 /**
+* Compute the perturbation reference orbit for a deep-zoom viewport.
+*
+* * `re_decimal`, `im_decimal` — the reference point (the viewport centre) as
+*   base-10 decimal strings with as many digits as the zoom needs.
+* * `max_iterations` — escape-iteration cap (also the orbit length cap).
+* * `precision_bits` — mantissa bits for the high-precision iteration; the
+*   caller should pass roughly `zoom_depth_bits + 64`. Clamped to ≥ 64.
+*
+* Returns a `ReferenceOrbit` handle. The caller keeps it alive, passes it to
+* [`render_tile_perturbed`] for every tile in the viewport, and calls `.free()`
+* when the viewport changes.
+* @param {string} re_decimal
+* @param {string} im_decimal
+* @param {number} max_iterations
+* @param {number} precision_bits
+* @returns {ReferenceOrbit}
+*/
+export function make_reference_orbit(re_decimal, im_decimal, max_iterations, precision_bits) {
+    try {
+        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+        const ptr0 = passStringToWasm0(re_decimal, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ptr1 = passStringToWasm0(im_decimal, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len1 = WASM_VECTOR_LEN;
+        wasm.make_reference_orbit(retptr, ptr0, len0, ptr1, len1, max_iterations, precision_bits);
+        var r0 = getInt32Memory0()[retptr / 4 + 0];
+        var r1 = getInt32Memory0()[retptr / 4 + 1];
+        var r2 = getInt32Memory0()[retptr / 4 + 2];
+        if (r2) {
+            throw takeObject(r1);
+        }
+        return ReferenceOrbit.__wrap(r0);
+    } finally {
+        wasm.__wbindgen_add_to_stack_pointer(16);
+    }
+}
+
+function _assertClass(instance, klass) {
+    if (!(instance instanceof klass)) {
+        throw new Error(`expected instance of ${klass.name}`);
+    }
+    return instance.ptr;
+}
+/**
+* Render one deep-zoom tile via perturbation against `orbit`.
+*
+* `delta_*` are the tile rectangle expressed as offsets from the reference
+* point (`delta = c - c_ref`) — small enough to be exact f64s. Other arguments
+* match [`render_tile`]. Returns a `Uint8ClampedArray` of `width*height*4`
+* bytes for `new ImageData(...)`.
+* @param {ReferenceOrbit} orbit
+* @param {number} delta_west
+* @param {number} delta_south
+* @param {number} delta_east
+* @param {number} delta_north
+* @param {number} width
+* @param {number} height
+* @param {number} max_iterations
+* @param {string} gradient_function
+* @param {Uint8Array} colors
+* @returns {Uint8ClampedArray}
+*/
+export function render_tile_perturbed(orbit, delta_west, delta_south, delta_east, delta_north, width, height, max_iterations, gradient_function, colors) {
+    try {
+        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+        _assertClass(orbit, ReferenceOrbit);
+        const ptr0 = passStringToWasm0(gradient_function, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ptr1 = passArray8ToWasm0(colors, wasm.__wbindgen_malloc);
+        const len1 = WASM_VECTOR_LEN;
+        wasm.render_tile_perturbed(retptr, orbit.__wbg_ptr, delta_west, delta_south, delta_east, delta_north, width, height, max_iterations, ptr0, len0, ptr1, len1);
+        var r0 = getInt32Memory0()[retptr / 4 + 0];
+        var r1 = getInt32Memory0()[retptr / 4 + 1];
+        var v3 = getClampedArrayU8FromWasm0(r0, r1).slice();
+        wasm.__wbindgen_free(r0, r1 * 1, 1);
+        return v3;
+    } finally {
+        wasm.__wbindgen_add_to_stack_pointer(16);
+    }
+}
+
+/**
 * Single-point grayscale escape value in `[0, 1]` (`0.0` = inside the set).
 * Retained as a small parity/debugging helper; the app uses [`render_tile`].
 * @param {number} c_re
@@ -177,22 +277,48 @@ export function evaluate_mandelbrot_grayscale(c_re, c_im, max_iterations) {
     return ret;
 }
 
-const cachedTextDecoder = (typeof TextDecoder !== 'undefined' ? new TextDecoder('utf-8', { ignoreBOM: true, fatal: true }) : { decode: () => { throw Error('TextDecoder not available') } } );
+/**
+* `Z_0, Z_1, … Z_{len-1}` of the reference point's orbit, as f64 pairs
+* (`Z_0 = 0`). `len >= 2` always. The arrays are read by `perturbation::escape`.
+*/
+export class ReferenceOrbit {
 
-if (typeof TextDecoder !== 'undefined') { cachedTextDecoder.decode(); };
+    static __wrap(ptr) {
+        ptr = ptr >>> 0;
+        const obj = Object.create(ReferenceOrbit.prototype);
+        obj.__wbg_ptr = ptr;
 
-function getStringFromWasm0(ptr, len) {
-    ptr = ptr >>> 0;
-    return cachedTextDecoder.decode(getUint8Memory0().subarray(ptr, ptr + len));
-}
+        return obj;
+    }
 
-function addHeapObject(obj) {
-    if (heap_next === heap.length) heap.push(heap.length + 1);
-    const idx = heap_next;
-    heap_next = heap[idx];
+    __destroy_into_raw() {
+        const ptr = this.__wbg_ptr;
+        this.__wbg_ptr = 0;
 
-    heap[idx] = obj;
-    return idx;
+        return ptr;
+    }
+
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_referenceorbit_free(ptr);
+    }
+    /**
+    * Number of stored iterates.
+    * @returns {number}
+    */
+    get length() {
+        const ret = wasm.referenceorbit_length(this.__wbg_ptr);
+        return ret >>> 0;
+    }
+    /**
+    * Whether the reference point's own orbit diverged before `max_iterations`
+    * (a hint that a longer-orbit reference would render the view better).
+    * @returns {boolean}
+    */
+    get escaped() {
+        const ret = wasm.referenceorbit_escaped(this.__wbg_ptr);
+        return ret !== 0;
+    }
 }
 
 async function __wbg_load(module, imports) {
@@ -229,6 +355,10 @@ async function __wbg_load(module, imports) {
 function __wbg_get_imports() {
     const imports = {};
     imports.wbg = {};
+    imports.wbg.__wbindgen_string_new = function(arg0, arg1) {
+        const ret = getStringFromWasm0(arg0, arg1);
+        return addHeapObject(ret);
+    };
     imports.wbg.__wbg_new_abda76e883ba8a5f = function() {
         const ret = new Error();
         return addHeapObject(ret);
@@ -253,6 +383,9 @@ function __wbg_get_imports() {
     };
     imports.wbg.__wbindgen_object_drop_ref = function(arg0) {
         takeObject(arg0);
+    };
+    imports.wbg.__wbindgen_throw = function(arg0, arg1) {
+        throw new Error(getStringFromWasm0(arg0, arg1));
     };
 
     return imports;

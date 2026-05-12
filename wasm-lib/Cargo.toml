@@ -13,6 +13,12 @@ crate-type = ["cdylib", "rlib"]
 wasm-bindgen = "0.2.88"
 js-sys = "0.3"
 console_error_panic_hook = "0.1"
+# Arbitrary-precision binary float for the perturbation reference orbit.
+dashu-float = { version = "0.4", default-features = false, features = ["std"] }
+dashu-base = { version = "0.4", default-features = false }
+# Double-double (~106-bit) arithmetic for the perturbation epsilon recurrence
+# and the direct fallback at extreme depth.
+twofloat = { version = "0.7", default-features = false }
 
 [dev-dependencies]
 # (host-side unit tests for the math live in src/*.rs behind cfg(test))
