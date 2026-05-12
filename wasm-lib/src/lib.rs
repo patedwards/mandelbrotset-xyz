@@ -1,86 +1,72 @@
+//! WASM entry points for the Mandelbrot tile renderer used by mandelbrotset.xyz.
+//!
+//! The app calls [`render_tile`] (off the main thread, from a Web Worker pool)
+//! to produce finished RGBA tiles for deck.gl's `BitmapLayer`. Deeper-zoom
+//! engines (double-double, perturbation) land in later modules.
+
 use wasm_bindgen::prelude::*;
+use wasm_bindgen::Clamped;
 
+mod color;
+mod engine;
+mod tile;
+
+use color::{Colors, GradientFn};
+
+/// Runs once when the module is instantiated (via wasm-bindgen's `init`, which
+/// `App.js` and the tile worker already call).
+#[wasm_bindgen(start)]
+pub fn __wasm_start() {
+    console_error_panic_hook::set_once();
+}
+
+/// Render one Mandelbrot tile to an RGBA8 buffer.
+///
+/// * `west`, `south`, `east`, `north` — the tile rectangle in the complex plane
+///   (`re ∈ [west, east]`, `im ∈ [south, north]`); these are deck.gl's
+///   `tile.bbox` values.
+/// * `width`, `height` — pixel size of the tile (256 in the app).
+/// * `max_iterations` — escape-iteration cap.
+/// * `gradient_function` — the string name used by the app
+///   (`"standard"`, `"rust"`, `"niceGradient"`, `"pillarMaker"`, `"log"`,
+///   `"sqrt"`, `"exponential"`, `"randomPalette"`).
+/// * `colors` — 12 bytes: start RGB, middle RGB, end RGB, black RGB.
+///
+/// Returns a `Uint8ClampedArray` of `width * height * 4` bytes — feed it straight
+/// to `new ImageData(buf, width, height)`.
 #[wasm_bindgen]
-pub fn evaluate_mandelbrot_grayscale(x0: f64, y0: f64, max_iterations: u32) -> f64 {
-    let mut x = 0.0;
-    let mut y = 0.0;
-
-    for iteration in 0..max_iterations {
-        let x_new = x * x - y * y + x0;
-        y = 2.0 * x * y + y0;
-        x = x_new;
-
-        if x * x + y * y > 4.0 {
-            // return a single normalized value for grayscale color
-            return iteration as f64 / max_iterations as f64;
-            
-        }
-    }
-
-    0.0
+pub fn render_tile(
+    west: f64,
+    south: f64,
+    east: f64,
+    north: f64,
+    width: u32,
+    height: u32,
+    max_iterations: u32,
+    gradient_function: &str,
+    colors: &[u8],
+) -> Clamped<Vec<u8>> {
+    let gradient = GradientFn::from_name(gradient_function);
+    let colors = Colors::from_bytes(colors);
+    Clamped(tile::render_tile_rgba(
+        west,
+        south,
+        east,
+        north,
+        width,
+        height,
+        max_iterations,
+        gradient,
+        &colors,
+    ))
 }
 
-// Define a static mutable buffer. Make sure it's large enough.
-const BUFFER_SIZE: usize = 512 * 512 * 3; // Adjust as needed
-static mut BUFFER: [f64; BUFFER_SIZE] = [0.0; BUFFER_SIZE];
-
+/// Single-point grayscale escape value in `[0, 1]` (`0.0` = inside the set).
+/// Retained as a small parity/debugging helper; the app uses [`render_tile`].
 #[wasm_bindgen]
-pub fn get_buffer_pointer() -> *const f64 {
-    let pointer: *const f64;
-    unsafe {
-        pointer = BUFFER.as_ptr();
+pub fn evaluate_mandelbrot_grayscale(c_re: f64, c_im: f64, max_iterations: u32) -> f64 {
+    match engine::escape(c_re, c_im, max_iterations).iterations {
+        -1 => 0.0,
+        n => f64::from(n) / f64::from(max_iterations),
     }
-    pointer
-}
-
-#[wasm_bindgen]
-pub fn make_mandelbrot_flat(x: u32, y: u32, zoom: u32, max_iterations: u32) -> Vec<f64> {
-    let tile_size = 256;
-    let total_elements = tile_size * tile_size * 3; // width * height * 3
-    let mut flat_data = Vec::with_capacity(total_elements);
-
-    let lon_from = tile2lon(x, zoom);
-    let lon_to = tile2lon(x + 1, zoom);
-    let lat_from = tile2lat(y + 1, zoom);
-    let lat_to = tile2lat(y, zoom);
-
-    let lon_step = (lon_to - lon_from) / tile_size as f64;
-    let lat_step = (lat_to - lat_from) / tile_size as f64;
-
-    for j in 0..tile_size {
-        for i in 0..tile_size {
-            let x0 = i as f64 * lon_step + lon_from;
-            let y0 = (tile_size - 1 - j) as f64 * lat_step + lat_from;
-
-            let (mut x, mut y) = (0.0, 0.0);
-            let mut iteration = 0;
-            while x * x + y * y <= 4.0 && iteration < max_iterations {
-                let x_new = x * x - y * y + x0;
-                y = 2.0 * x * y + y0;
-                x = x_new;
-                iteration += 1;
-            }
-
-            if iteration < max_iterations {
-                flat_data.push(x);
-                flat_data.push(y);
-                flat_data.push(iteration as f64);
-            } else {
-                flat_data.push(-1.0);
-                flat_data.push(-1.0);
-                flat_data.push(-1.0);
-            }
-        }
-    }
-
-    flat_data
-}
-
-fn tile2lon(x: u32, z: u32) -> f64 {
-    (x as f64 / 2f64.powi(z as i32)) * 360.0 - 180.0
-}
-
-fn tile2lat(y: u32, z: u32) -> f64 {
-    let n = std::f64::consts::PI - (2.0 * std::f64::consts::PI * y as f64) / 2f64.powi(z as i32);
-    180.0 / std::f64::consts::PI * (0.5 * (n.exp() - (-n).exp())).atan()
 }
