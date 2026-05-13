@@ -6,40 +6,21 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { decodeColors, encodeColors } from "../utilities/colors";
 import { createTileLayer as createTileLayerJs } from "../layers/TileLayerPureJS";
-import { createTileLayer as createTileLayerGl } from "../layers/TileLayerGL";
 import { createTileLayer as createTileLayerRust } from "../layers/TileLayerRustWASM";
 
-// Deepest zoom the deck.gl viewer is allowed to reach. The WebGL shader's
-// 32-bit floats lose accuracy past ~zoom 22, so beyond GL_ACCURATE_MAX_ZOOM we
-// switch to the Rust/WASM f64 renderer (good to roughly zoom ~40 before the
-// tile coordinates themselves run out of mantissa). Truly unlimited zoom comes
-// later via the perturbation engine + a custom high-precision viewer.
+// Every gradient — `standard` included — renders through the Rust/WASM tile
+// pipeline. f64 inside Rust is good to roughly zoom ~40 before the tile
+// coordinates themselves run out of mantissa; truly unlimited zoom comes later
+// via the perturbation engine + a custom high-precision viewer.
 // TODO: zoom-to-infinity (Phase 3)
-const MAX_ZOOM = 32;
-const GL_ACCURATE_MAX_ZOOM = 22;
+const MAX_ZOOM = 40;
 
 const WASM_AVAILABLE = typeof WebAssembly !== "undefined";
-
-// Pick the tile renderer for the current gradient/zoom: the GL shader for the
-// shallow `standard` view (fast), the Rust/WASM renderer otherwise (all the
-// other gradients at any zoom, and `standard` once GL gets imprecise), and the
-// pure-JS renderer only as a last resort if WASM is unavailable.
-const pickEngine = (gradientFunction, zoom) => {
-  if (gradientFunction === "standard" && zoom < GL_ACCURATE_MAX_ZOOM) return "gl";
-  return WASM_AVAILABLE ? "wasm" : "js";
-};
-
-const ENGINE_FACTORIES = {
-  gl: createTileLayerGl,
-  wasm: createTileLayerRust,
-  js: createTileLayerJs,
-};
 
 // Atoms: Global settings
 const getStateFromUrlAtom = atom(true);
 const showAlertAtom = atom(false);
 const showInfoAtom = atom(false);
-const glTimeAtom = atom(true);
 const autoScaleMaxIterationsAtom = atom(true);
 
 // Atoms: UI states
@@ -73,7 +54,6 @@ export const useIsMobile = () => {
   return isMobile;
 };
 export const useMapRef = () => useAtom(mapRefAtom);
-export const useGL = () => useAtom(glTimeAtom);
 
 export const useX = () => useAtom(xAtom);
 export const useY = () => useAtom(yAtom);
@@ -153,21 +133,16 @@ export const useTileLayer = () => {
   const [maxIterations] = useMaxIterations();
   const [colors] = useColors();
   const [gradientFunction] = useGradientFunction();
-  const [z] = useZ();
-
-  // Only the engine *choice* should retrigger layer creation, not every zoom
-  // event — `engine` is a stable string that flips only at the threshold.
-  const engine = pickEngine(gradientFunction, z);
 
   return useMemo(() => {
-    const createTileLayer = ENGINE_FACTORIES[engine] || createTileLayerRust;
+    const createTileLayer = WASM_AVAILABLE ? createTileLayerRust : createTileLayerJs;
     return createTileLayer({
       maxIterations,
       colors,
       gradientFunction,
       maxZoom: MAX_ZOOM,
     });
-  }, [maxIterations, colors, gradientFunction, engine]);
+  }, [maxIterations, colors, gradientFunction]);
 };
 
 export const useStateUrl = () => {

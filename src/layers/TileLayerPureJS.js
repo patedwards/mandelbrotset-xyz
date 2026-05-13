@@ -5,25 +5,20 @@ import { makeMandelbrot as makeMandelbrotJs } from "../utilities/tileGeneration"
 import { mandelbrotPixelTransform } from "../utilities/mandelbrotUtils";
 import { convertDataToPixels, createTileImage } from "../utilities/webglUtils";
 
+// Pure-JS fallback used only when WebAssembly is unavailable. Otherwise every
+// gradient renders through the Rust/WASM pipeline (TileLayerRustWASM.js).
 export const createTileLayer = ({
   maxIterations,
   colors,
   gradientFunction,
-  glIsUsed,
   maxZoom,
 }) => {
   return new TileLayer({
     minZoom: 0,
     maxZoom,
     tileSize: 256,
-    parameters: {
-      maxIterations,
-      colors,
-      gradientFunction,
-      glIsUsed,
-    },
     updateTriggers: {
-      getTileData: { maxIterations, colors, gradientFunction, glIsUsed },
+      getTileData: { maxIterations, colors, gradientFunction },
     },
     getTileData: ({ x, y, z }) => {
       const data = makeMandelbrotJs(x, y, z, maxIterations);

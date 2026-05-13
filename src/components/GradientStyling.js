@@ -49,12 +49,6 @@ const gradientFunctions = [
 
 export const ColorStyler = () => {
   const [colors, setColors] = useColors();
-  const [blackColor, setBlackColor] = useState({
-    r: 0,
-    g: 0,
-    b: 0,
-    hex: "#000000",
-  });
 
   const [chosen, setChosen] = useState(null);
   const [showBigPicker, setShowBigPicker] = useState(false);
@@ -165,16 +159,14 @@ export const ColorStyler = () => {
               backgroundColor: chosen === "black" ? "#eee" : "transparent",
             }}
           >
-            <SquareIcon sx={{ color: blackColor.hex }} />
+            <SquareIcon sx={{ color: colors.black.hex }} />
           </IconButton>
           <TextField
             size="small"
             variant="standard"
-            value={blackColor.hex}
+            value={colors.black.hex}
             onFocus={() => setChosen("black")}
-            onChange={(e) =>
-              setBlackColor({ ...blackColor, hex: e.target.value })
-            }
+            onChange={(e) => handleHexInputChange("black", e.target.value)}
             inputProps={{ maxLength: 7 }} // #RRGGBB format
             sx={{ width: "80px" }} // Control the width here
           />
