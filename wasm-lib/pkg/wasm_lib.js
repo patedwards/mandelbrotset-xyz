@@ -265,6 +265,42 @@ export function render_tile_perturbed(orbit, delta_west, delta_south, delta_east
 }
 
 /**
+* Add a small f64 `delta` to a high-precision decimal string and return the
+* updated decimal. Used by the deep-zoom viewer to translate its centre as
+* the user pans / zooms (JS can't do bignum arithmetic on its own).
+* @param {string} decimal
+* @param {number} delta
+* @param {number} precision_bits
+* @returns {string}
+*/
+export function add_to_decimal(decimal, delta, precision_bits) {
+    let deferred3_0;
+    let deferred3_1;
+    try {
+        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+        const ptr0 = passStringToWasm0(decimal, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        wasm.add_to_decimal(retptr, ptr0, len0, delta, precision_bits);
+        var r0 = getInt32Memory0()[retptr / 4 + 0];
+        var r1 = getInt32Memory0()[retptr / 4 + 1];
+        var r2 = getInt32Memory0()[retptr / 4 + 2];
+        var r3 = getInt32Memory0()[retptr / 4 + 3];
+        var ptr2 = r0;
+        var len2 = r1;
+        if (r3) {
+            ptr2 = 0; len2 = 0;
+            throw takeObject(r2);
+        }
+        deferred3_0 = ptr2;
+        deferred3_1 = len2;
+        return getStringFromWasm0(ptr2, len2);
+    } finally {
+        wasm.__wbindgen_add_to_stack_pointer(16);
+        wasm.__wbindgen_free(deferred3_0, deferred3_1, 1);
+    }
+}
+
+/**
 * Single-point grayscale escape value in `[0, 1]` (`0.0` = inside the set).
 * Retained as a small parity/debugging helper; the app uses [`render_tile`].
 * @param {number} c_re

@@ -72,6 +72,16 @@ export function make_reference_orbit(re_decimal: string, im_decimal: string, max
 */
 export function render_tile_perturbed(orbit: ReferenceOrbit, delta_west: number, delta_south: number, delta_east: number, delta_north: number, width: number, height: number, max_iterations: number, gradient_function: string, colors: Uint8Array): Uint8ClampedArray;
 /**
+* Add a small f64 `delta` to a high-precision decimal string and return the
+* updated decimal. Used by the deep-zoom viewer to translate its centre as
+* the user pans / zooms (JS can't do bignum arithmetic on its own).
+* @param {string} decimal
+* @param {number} delta
+* @param {number} precision_bits
+* @returns {string}
+*/
+export function add_to_decimal(decimal: string, delta: number, precision_bits: number): string;
+/**
 * Single-point grayscale escape value in `[0, 1]` (`0.0` = inside the set).
 * Retained as a small parity/debugging helper; the app uses [`render_tile`].
 * @param {number} c_re
@@ -107,6 +117,7 @@ export interface InitOutput {
   readonly render_tile: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: number, l: number) => void;
   readonly make_reference_orbit: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
   readonly render_tile_perturbed: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number, k: number, l: number, m: number) => void;
+  readonly add_to_decimal: (a: number, b: number, c: number, d: number, e: number) => void;
   readonly evaluate_mandelbrot_grayscale: (a: number, b: number, c: number) => number;
   readonly __wasm_start: () => void;
   readonly __wbindgen_add_to_stack_pointer: (a: number) => number;

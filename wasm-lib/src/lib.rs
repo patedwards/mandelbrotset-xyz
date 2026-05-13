@@ -132,6 +132,18 @@ pub fn render_tile_perturbed(
     ))
 }
 
+/// Add a small f64 `delta` to a high-precision decimal string and return the
+/// updated decimal. Used by the deep-zoom viewer to translate its centre as
+/// the user pans / zooms (JS can't do bignum arithmetic on its own).
+#[wasm_bindgen]
+pub fn add_to_decimal(decimal: &str, delta: f64, precision_bits: u32) -> Result<String, JsValue> {
+    let bits = (precision_bits.max(64)) as usize;
+    let big = precision::parse_decimal(decimal, bits).map_err(|e| JsValue::from_str(&e))?;
+    let delta_big = precision::from_f64(delta, bits);
+    let sum = precision::round_bits(big + delta_big, bits);
+    Ok(precision::to_decimal_string(&sum))
+}
+
 /// Single-point grayscale escape value in `[0, 1]` (`0.0` = inside the set).
 /// Retained as a small parity/debugging helper; the app uses [`render_tile`].
 #[wasm_bindgen]

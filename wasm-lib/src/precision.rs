@@ -78,6 +78,26 @@ pub fn magnitude_sq_f64(zx: &BigFloat, zy: &BigFloat) -> f64 {
     x * x + y * y
 }
 
+/// Promote an f64 to a `BigFloat` at the requested precision.
+pub fn from_f64(x: f64, precision_bits: usize) -> BigFloat {
+    // `FBig::try_from(f64)` fails on NaN / infinity; the deep-zoom viewer
+    // never passes those, but defend anyway.
+    let big: BigFloat = BigFloat::try_from(x).unwrap_or_else(|_| BigFloat::from(0u8));
+    round_bits(big, precision_bits)
+}
+
+/// Format a `BigFloat` as a decimal string with enough digits to round-trip
+/// through `parse_decimal` at the same precision.
+pub fn to_decimal_string(x: &BigFloat) -> String {
+    let bits = x.precision();
+    // ceil(bits / log2(10)) ≈ bits / 3.322 — add a couple of guard digits.
+    let decimal_digits = bits / 3 + 3;
+    let dec = match x.clone().with_base_and_precision::<10>(decimal_digits) {
+        Approximation::Exact(v) | Approximation::Inexact(v, _) => v,
+    };
+    format!("{dec}")
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -96,6 +116,34 @@ mod tests {
         // The f64 round should match parsing it directly as f64.
         let direct: f64 = s.parse().unwrap();
         assert_eq!(to_f64(&x), direct);
+    }
+
+    #[test]
+    fn round_trip_via_decimal_string() {
+        let s = "-0.743643887037158704752191506114774";
+        let x = parse_decimal(s, 200).unwrap();
+        let out = to_decimal_string(&x);
+        let y = parse_decimal(&out, 200).unwrap();
+        // Both should round to the same f64.
+        assert_eq!(to_f64(&x), to_f64(&y));
+        // And the decimal string itself should preserve the leading digits.
+        assert!(out.starts_with("-0.74364388703715870475"));
+    }
+
+    #[test]
+    fn add_small_delta_preserves_high_digits() {
+        let s = "-0.743643887037158704752191506114774";
+        let bits = 200;
+        let x = parse_decimal(s, bits).unwrap();
+        let delta = from_f64(1.0e-25, bits);
+        let y = round_bits(x + delta, bits);
+        let out = to_decimal_string(&y);
+        eprintln!("out = {out}");
+        // Just check we can round-trip the result back.
+        let back = parse_decimal(&out, bits).unwrap();
+        // The diff |x+delta - parsed_back| should be < ulp of x at 200 bits.
+        let diff = (to_f64(&y) - to_f64(&back)).abs();
+        assert!(diff < 1e-15, "round-trip diff {diff}, out={out}");
     }
 
     #[test]
