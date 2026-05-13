@@ -14,12 +14,14 @@ import Map from "./components/Map";
 import { styleTaskActivities } from "./components/StyleTaskActivities";
 import TaskDrawer from "./components/TaskDrawer";
 import {
+  useDeepZoomActive,
   useIsMobile,
   useMapRef,
   useShowAlert,
   useShowControls,
 } from "./hooks/state";
 import { InfoPanel } from "./components/InfoPanel";
+import DeepZoomView from "./deepzoom/DeepZoomView";
 
 function App() {
   // get the parameters from the URL
@@ -40,6 +42,7 @@ function App() {
 
   // Map state
   const [, setMapRef] = useMapRef();
+  const [deepActive] = useDeepZoomActive();
 
   const handleCloseControls = () => setShowControls(false);
 
@@ -100,7 +103,7 @@ function App() {
             />
           )}
           <div style={{ flex: 1, overflow: "hidden" }}>
-            <Map ref={mapRefInit} />
+            {deepActive ? <DeepZoomView /> : <Map ref={mapRefInit} />}
           </div>
           <Library />
           <InfoPanel />

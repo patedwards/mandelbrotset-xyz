@@ -10,16 +10,29 @@ import {
 import DeckGL from "@deck.gl/react";
 
 import { useStore } from "../hooks/store";
-import { useTileLayer, useInitialViewState, useX, useY, useZ } from "../hooks/state";
+import {
+  useTileLayer,
+  useInitialViewState,
+  useX,
+  useY,
+  useZ,
+  useDeepZoomActive,
+  useDeepCenter,
+  useDeepZoomLevel,
+  DEEP_ZOOM_THRESHOLD,
+} from "../hooks/state";
 
 const Map = forwardRef((_, ref) => {
   const [initialViewState] = useInitialViewState();
   const deckViewStateRef = useRef(null);
   const layer = useTileLayer();
-  const { addLibraryItem } = useStore();  
+  const { addLibraryItem } = useStore();
   const [, setX] = useX();
   const [, setY] = useY();
   const [, setZ] = useZ();
+  const [, setDeepActive] = useDeepZoomActive();
+  const [, setDeepCenterRe, , setDeepCenterIm] = useDeepCenter();
+  const [, setDeepZoomLevel] = useDeepZoomLevel();
 
   const deckRef = useRef();
 
@@ -32,7 +45,17 @@ const Map = forwardRef((_, ref) => {
     setY(viewState.latitude);
     setZ(viewState.zoom);
     deckViewStateRef.current = viewState;
-  }
+    // Hand off to the deep-zoom viewer once we cross the precision threshold:
+    // seed the deep state from the current view (f64 has plenty of digits to
+    // represent the centre to within a small fraction of a pixel at z ~= 38),
+    // then flip the active flag — App will swap us out for DeepZoomView.
+    if (viewState.zoom >= DEEP_ZOOM_THRESHOLD) {
+      setDeepCenterRe(String(viewState.longitude));
+      setDeepCenterIm(String(viewState.latitude));
+      setDeepZoomLevel(viewState.zoom);
+      setDeepActive(true);
+    }
+  };
 
   useEffect(() => {
     if (deckRef.current && deckRef.current.deck) {
