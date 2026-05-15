@@ -82,12 +82,16 @@ void main() {
                vec2(mandelbrotBounds.y, mandelbrotBounds.w),
                vUv);
   vec2 z = vec2(0.0);
-  // iters defaults to maxIterations (the not-escaped sentinel); the inner
-  // break records the actual escape index. Done this way because GLSL ES 1.00
-  // requires the loop variable to be declared inline in the for-init, so we
-  // cannot read it after the loop ends.
+
+  // GLSL ES 1.00 requires the for-loop bound to be a *constant* expression
+  // (not a uniform), so we use a hard cap and break out once we hit
+  // maxIterations. The cap also bounds the GPU work per pixel; if the user
+  // pins maxIterations higher than this they'll get the WASM band, which
+  // takes over at zoom 22 anyway.
+  const float MAX_LOOP_ITERATIONS = 4096.0;
   float iters = maxIterations;
-  for (float i = 0.0; i < maxIterations; i += 1.0) {
+  for (float i = 0.0; i < MAX_LOOP_ITERATIONS; i += 1.0) {
+    if (i >= maxIterations) break;
     z = vec2(z.x * z.x - z.y * z.y + c.x, 2.0 * z.x * z.y + c.y);
     if (dot(z, z) > 2.0) { iters = i; break; }
   }
