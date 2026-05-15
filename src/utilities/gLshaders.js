@@ -82,12 +82,14 @@ void main() {
                vec2(mandelbrotBounds.y, mandelbrotBounds.w),
                vUv);
   vec2 z = vec2(0.0);
-  float iters;
-  // Bailout |z|^2 > 2.0, matching engine.rs / tileGeneration.js. After the
-  // update z is the escaped iterate (PillarMaker needs that).
-  for (iters = 0.0; iters < maxIterations; iters += 1.0) {
+  // iters defaults to maxIterations (the not-escaped sentinel); the inner
+  // break records the actual escape index. Done this way because GLSL ES 1.00
+  // requires the loop variable to be declared inline in the for-init, so we
+  // cannot read it after the loop ends.
+  float iters = maxIterations;
+  for (float i = 0.0; i < maxIterations; i += 1.0) {
     z = vec2(z.x * z.x - z.y * z.y + c.x, 2.0 * z.x * z.y + c.y);
-    if (dot(z, z) > 2.0) break;
+    if (dot(z, z) > 2.0) { iters = i; break; }
   }
   bool escaped = iters < maxIterations;
 
