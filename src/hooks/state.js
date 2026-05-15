@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { decodeColors, encodeColors } from "../utilities/colors";
 import { createTileLayer as createTileLayerJs } from "../layers/TileLayerPureJS";
 import { createTileLayer as createTileLayerRust } from "../layers/TileLayerRustWASM";
+import { createTileLayer as createTileLayerGl } from "../layers/TileLayerGL";
 
 // Parse URL parameters once, at module load, so the jotai atoms can initialise
 // with the right values *before* the first render. Anything missing falls back
@@ -43,15 +44,17 @@ const URL_INIT = (() => {
   return out;
 })();
 
-// Every gradient — `standard` included — renders through the Rust/WASM tile
-// pipeline. f64 inside Rust stays accurate up to roughly zoom ~40 before the
-// tile coordinates themselves run out of mantissa; past that, the deep-zoom
-// viewer takes over with arbitrary-precision-reference perturbation.
+// Three rendering bands, all sharing the same gradient math so the hand-offs
+// are visually seamless:
+//   z < GL_THRESHOLD              -> GLSL fragment shader (TileLayerGL).
+//   GL_THRESHOLD <= z < DEEP_*    -> Rust/WASM tile workers (TileLayerRustWASM).
+//   z >= DEEP_ZOOM_THRESHOLD      -> perturbation viewer (DeepZoomView).
+//
+// GL is ~100x faster per tile than WASM at the same maxIter, but its 32-bit
+// floats lose precision past zoom ~22. WASM (f64) carries us another ~16
+// zoom levels before the *tile coordinates themselves* run out of mantissa.
 const MAX_ZOOM = 40;
-
-// Zoom at which we hand off from deck.gl to DeepZoomView (and vice versa).
-// Picked just below MAX_ZOOM so the f64 deck.gl renderer still has a bit of
-// headroom when the user crosses the threshold.
+const GL_THRESHOLD = 22;
 export const DEEP_ZOOM_THRESHOLD = 38;
 
 const WASM_AVAILABLE = typeof WebAssembly !== "undefined";
@@ -115,8 +118,15 @@ export const useDeepCenter = () => {
   return [re, setRe, im, setIm];
 };
 
-// make useMaxIterations work by either using the atom, or if useAutoScaleMaxIterations is true,
-// then use the scaling function
+// Auto-scaled escape-iteration cap. The old `z^2.5` formula blew up past
+// z~20 (z=30 wanted ~5 000 iterations, z=40 wanted ~10 000) — that was tolerable
+// when only GL was used, but expensive once the WASM/CPU renderer takes over.
+// Cap it to a gentler linear growth above zoom 20: shallow detail is preserved,
+// mid-zoom doesn't punish the worker pool, and the manual override is always
+// one toggle away.
+const scaleMaxIterations = (z) =>
+  Math.floor(Math.min(Math.pow(Math.max(z, 1), 2.5), 80 * z + 200));
+
 export const useMaxIterations = () => {
   const [maxIterations, setMaxIterations] = useAtom(maxIterationsAtom);
   const [max, setMax] = useState(maxIterations);
@@ -125,16 +135,14 @@ export const useMaxIterations = () => {
   const [z] = useZ();
 
   useEffect(() => {
-    const idealMaxIterations = Math.floor(10 * z ** 2);
-    // only update max at zoom levels that more than 20% from the ideal,
-    // this reduces re-making the TileLayer
-    if (
-      autoScaleMaxIterations &&
-      Math.abs(max - idealMaxIterations) > 0.2 * idealMaxIterations
-    ) {
-      setMax(Math.floor(1 * z ** 2.5));
+    if (!autoScaleMaxIterations) return;
+    const ideal = scaleMaxIterations(z);
+    // Only nudge when we've drifted more than 20% from the ideal — fewer
+    // refetches as the user zooms.
+    if (Math.abs(max - ideal) > 0.2 * Math.max(ideal, 1)) {
+      setMax(ideal);
     }
-  }, [z, max, autoScaleMaxIterations, maxIterations]);
+  }, [z, max, autoScaleMaxIterations]);
 
   return [autoScaleMaxIterations ? max : maxIterations, setMaxIterations];
 };
@@ -166,20 +174,38 @@ export const useInitialViewState = () => {
 
 // Complex hooks
 
+// Engine picked per zoom band: GL while it's accurate (fastest by far), Rust/
+// WASM once GL gets imprecise, pure-JS only as a fallback when WebAssembly is
+// missing. `engine` is a stable string that flips only at the threshold, so
+// the TileLayer is only recreated when we actually cross the GL/WASM band —
+// not on every zoom event.
+const pickEngine = (zoom) => {
+  if (zoom < GL_THRESHOLD) return "gl";
+  return WASM_AVAILABLE ? "wasm" : "js";
+};
+
+const ENGINE_FACTORIES = {
+  gl: createTileLayerGl,
+  wasm: createTileLayerRust,
+  js: createTileLayerJs,
+};
+
 export const useTileLayer = () => {
   const [maxIterations] = useMaxIterations();
   const [colors] = useColors();
   const [gradientFunction] = useGradientFunction();
+  const [z] = useZ();
+  const engine = pickEngine(z);
 
   return useMemo(() => {
-    const createTileLayer = WASM_AVAILABLE ? createTileLayerRust : createTileLayerJs;
+    const createTileLayer = ENGINE_FACTORIES[engine] || createTileLayerRust;
     return createTileLayer({
       maxIterations,
       colors,
       gradientFunction,
       maxZoom: MAX_ZOOM,
     });
-  }, [maxIterations, colors, gradientFunction]);
+  }, [maxIterations, colors, gradientFunction, engine]);
 };
 
 export const useStateUrl = () => {
