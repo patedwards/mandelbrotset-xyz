@@ -3,6 +3,7 @@ import PaletteIcon from "@mui/icons-material/Palette";
 import InfoIcon from "@mui/icons-material/Info";
 import SnapIcon from "@mui/icons-material/Save";
 import PrintIcon from "@mui/icons-material/Print";
+import GalleryIcon from "@mui/icons-material/GridView";
 import useMediaQuery from "@mui/material/useMediaQuery";
 
 import { Toolbar } from "@mui/material";
@@ -40,6 +41,7 @@ import {
   useZ,
 } from "../hooks/state";
 import ExportDialog from "./ExportDialog";
+import { useNavigate } from "react-router-dom";
 
 const Task = (task) => {
   const theme = useTheme();
@@ -119,6 +121,7 @@ export default function TaskDrawer() {
   const [saveOpen, setSaveOpen] = useState(false);
   const [locationName, setLocationName] = useState("");
   const [exportOpen, setExportOpen] = useState(false);
+  const navigate = useNavigate();
 
   const handleSaveConfirm = () => {
     if (mapRef.current) {
@@ -173,6 +176,11 @@ export default function TaskDrawer() {
       label: "Image Library",
       onClick: () => setLibraryOpen(true),
       icon: LibraryIcon,
+    },
+    {
+      label: "Gallery",
+      onClick: () => navigate("/gallery"),
+      icon: GalleryIcon,
     },
   ];
 

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 
-import { BrowserRouter as Router } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 import Alert from "@mui/material/Alert";
 import Snackbar from "@mui/material/Snackbar";
@@ -11,6 +11,7 @@ import AppBar from "./components/AppBar";
 import ControlAccordion from "./components/ControlAccordion";
 import Library from "./components/Library";
 import Map from "./components/Map";
+import Gallery from "./components/Gallery";
 import { styleTaskActivities } from "./components/StyleTaskActivities";
 import TaskDrawer from "./components/TaskDrawer";
 import {
@@ -114,7 +115,10 @@ const RootApp = () => {
   return (
     <ThemeProvider theme={themeSpec}>
       <Router>
-        <App />
+        <Routes>
+          <Route path="/gallery" element={<Gallery />} />
+          <Route path="*" element={<App />} />
+        </Routes>
       </Router>
     </ThemeProvider>
   );
