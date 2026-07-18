@@ -10,6 +10,9 @@ This project visualizes the Mandelbrot set using the TileLayer and BitmapLayer f
 - Efficient Tiling: Only render the parts of the image that are in view, leading to a smoother user experience.
 - Save images to a library to come back to later
 - URLs contain the full state required to generate the image, meaning images can be shared via URL
+- Export for print: render at paper presets up to 24×36" at 300 DPI, computed offscreen through the Rust/WASM worker pool
+- Saved locations: name and save the full view state, with portable JSON export/import in the Library dialog
+- Gallery: a plate-archive portfolio of saved locations at /gallery, each live-rendered
 
 # Where can I use it?
 
