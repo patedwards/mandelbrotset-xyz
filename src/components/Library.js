@@ -33,6 +33,52 @@ const ImageViewerDialog = () => {
   const { library, removeLibraryItem, updateLibraryItem, syncLibrary } =
     useStore();
 
+  // Download all saved locations (with thumbnails) as a portable JSON file.
+  const handleExportLocations = () => {
+    const items = library.map((item) => ({
+      ...item,
+      thumbnail: localStorage.getItem(item.imageLocation) || null,
+    }));
+    const blob = new Blob(
+      [JSON.stringify({ format: "mandelbrotset-xyz-locations", version: 1, items }, null, 2)],
+      { type: "application/json" }
+    );
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "mandelbrot-locations.json";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+
+  const handleImportLocations = (event) => {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const data = JSON.parse(reader.result);
+        const items = Array.isArray(data) ? data : data.items || [];
+        // Batch the merge in one localStorage write — repeated addLibraryItem
+        // calls would each close over a stale `library` and drop items.
+        const current = JSON.parse(localStorage.getItem("library")) || [];
+        const existing = new Set(current.map((i) => i.imageLocation));
+        const merged = [...current];
+        items.forEach((item) => {
+          if (!item.imageLocation || existing.has(item.imageLocation)) return;
+          const { thumbnail, ...rest } = item;
+          if (thumbnail) localStorage.setItem(item.imageLocation, thumbnail);
+          merged.push(rest);
+        });
+        localStorage.setItem("library", JSON.stringify(merged));
+        syncLibrary();
+      } catch (e) {
+        console.error("Failed to import locations:", e);
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = "";
+  };
+
   useEffect(() => {
     syncLibrary();
   }, [libraryOpen, syncLibrary]);
@@ -122,6 +168,15 @@ const ImageViewerDialog = () => {
             ))}
           </Grid>
         </DialogContent>
+        <DialogActions>
+          <Button component="label" size="small">
+            Import
+            <input type="file" accept="application/json" hidden onChange={handleImportLocations} />
+          </Button>
+          <Button size="small" onClick={handleExportLocations} disabled={library.length === 0}>
+            Export all
+          </Button>
+        </DialogActions>
       </Dialog>
       <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)}>
         <DialogTitle>Edit Snapshot Name</DialogTitle>
