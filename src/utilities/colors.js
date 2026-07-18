@@ -24,3 +24,16 @@ export const decodeColors = (colors) => {
     black: { hex: black, ...hexToRgb("#" + black) },
   };
 };
+
+const clampByte = (x) => Math.max(0, Math.min(255, Math.round(x)));
+
+// Pack the four UI colours into the 12-byte layout the Rust renderer expects
+// (start RGB, middle RGB, end RGB, black RGB).
+export const colorsToBytes = (colors) =>
+  new Uint8Array(
+    [colors.start, colors.middle, colors.end, colors.black].flatMap((c) => [
+      clampByte(c.r),
+      clampByte(c.g),
+      clampByte(c.b),
+    ])
+  );

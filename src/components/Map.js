@@ -41,12 +41,12 @@ const Map = forwardRef((_, ref) => {
   }, []);
 
   useImperativeHandle(ref, () => ({
-    captureThumbnail: async (url) => {
+    captureThumbnail: async (url, meta) => {
       if (!isDeckLoaded) {
         console.error("DeckGL is not loaded yet");
         return;
       }
-      setCaptureThumbnail({ready: true, url}); // add this line
+      setCaptureThumbnail({ ready: true, url, meta });
     },
     captureHD: async () => {
       if (!isDeckLoaded) {
@@ -110,10 +110,14 @@ const Map = forwardRef((_, ref) => {
       localStorage.setItem(imageLocation, base64Image);
 
 
-      // Update the library
+      // Update the library. `meta` carries the location name and the full
+      // structured state (x/y/z, iterations, gradient, colors) so saved
+      // locations are first-class data, not just a URL.
       const newItem = {
         imageLocation,
         url: captureThumbnail.url,
+        savedAt: new Date().toISOString(),
+        ...(captureThumbnail.meta || {}),
       };
       addLibraryItem(newItem);
 
