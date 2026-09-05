@@ -7,6 +7,7 @@
  */
 
 import { getTilePool } from "../workers/tilePool";
+import { PERTURB_FROM_ZOOM } from "../layers/TileLayerCrisp";
 import { colorsToBytes } from "./colors";
 
 const CHUNK = 512; // px per worker job — big enough to amortize, small enough to parallelize
@@ -130,12 +131,33 @@ export async function renderExport({
       const north = bbox.north - py * degPerPxY;
       const south = north - CHUNK * degPerPxY;
 
+      // Print output uses the crisp renderer at aa 3 (9 samples on edge
+      // pixels); deep exports go through perturbation anchored at the
+      // export centre. Chunks are independent so this is a per-job choice.
+      const crispOpts = { mode: "crisp", aa: 3, de: 0.6 };
+      const jobParams =
+        z >= PERTURB_FROM_ZOOM
+          ? {
+              ...crispOpts,
+              mode: "perturbed",
+              west: west - x,
+              south: south - y,
+              east: east - x,
+              north: north - y,
+              ref: {
+                key: `export:${x},${y},${z}`,
+                cRe: x.toString(),
+                cIm: y.toString(),
+                zoomBits: z + 8,
+                maxIterations,
+                dcMax:
+                  Math.hypot(bbox.east - bbox.west, bbox.north - bbox.south) * 2,
+              },
+            }
+          : { ...crispOpts, west, south, east, north };
       const job = pool
         .render({
-          west,
-          south,
-          east,
-          north,
+          ...jobParams,
           tileSize: CHUNK,
           maxIterations,
           gradientFunction,

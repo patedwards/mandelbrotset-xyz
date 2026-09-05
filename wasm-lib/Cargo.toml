@@ -13,6 +13,8 @@ crate-type = ["cdylib", "rlib"]
 wasm-bindgen = "0.2.88"
 js-sys = "0.3"
 console_error_panic_hook = "0.1"
+# Arbitrary-precision floats for the perturbation reference orbit (pure Rust, wasm-safe; NOT rug/GMP)
+dashu-int = { version = "0.4", default-features = false }
 
 [dev-dependencies]
 # (host-side unit tests for the math live in src/*.rs behind cfg(test))

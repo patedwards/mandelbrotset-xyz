@@ -11,6 +11,7 @@ import DeckGL from "@deck.gl/react";
 
 import { useStore } from "../hooks/store";
 import { useTileLayer, useInitialViewState, useX, useY, useZ } from "../hooks/state";
+import { setViewCenter } from "../layers/TileLayerCrisp";
 
 const Map = forwardRef((_, ref) => {
   const [initialViewState] = useInitialViewState();
@@ -28,6 +29,8 @@ const Map = forwardRef((_, ref) => {
   const [captureHD, setCaptureHD] = useState(false);
 
   const handleViewStateChange = ({ viewState }) => {
+    // Keeps the perturbation reference anchored near the view centre.
+    setViewCenter(viewState.longitude, viewState.latitude, viewState.zoom);
     setX(viewState.longitude);
     setY(viewState.latitude);
     setZ(viewState.zoom);
