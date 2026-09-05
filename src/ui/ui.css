@@ -25,7 +25,12 @@
 }
 
 html, body, #root { height: 100%; margin: 0; }
+html { height: 100dvh; }
 body {
+  /* Pinned so mobile browsers can never scroll the document itself: the
+   * canvas owns every gesture, panels scroll internally, and the toolbar
+   * stays where it is when the browser chrome collapses. */
+  position: fixed; inset: 0; width: 100%; height: 100dvh;
   background: var(--ink);
   color: var(--text);
   font-family: var(--font);
@@ -33,6 +38,7 @@ body {
   line-height: 1.45;
   -webkit-font-smoothing: antialiased;
   overflow: hidden;
+  overscroll-behavior: none;
 }
 * { box-sizing: border-box; }
 button, input, select { font: inherit; color: inherit; }
@@ -43,8 +49,8 @@ button { background: none; border: 0; padding: 0; cursor: pointer; }
 }
 
 /* ---- shell -------------------------------------------------------------- */
-.shell { position: fixed; inset: 0; }
-.shell-canvas { position: absolute; inset: 0; }
+.shell { position: fixed; inset: 0; height: 100dvh; }
+.shell-canvas { position: absolute; inset: 0; touch-action: none; }
 
 /* ---- readout (top-left) ------------------------------------------------- */
 .readout {
@@ -93,7 +99,7 @@ button { background: none; border: 0; padding: 0; cursor: pointer; }
 }
 .tool[aria-pressed="true"] kbd { color: rgba(15,16,19,.6); border-color: rgba(15,16,19,.25); }
 @media (max-width: 640px) {
-  .toolbar { left: 12px; right: 12px; bottom: 12px; transform: none; justify-content: space-between; }
+  .toolbar { left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); transform: none; justify-content: space-between; }
   .tool { padding: 0 10px; }
   .tool span, .tool kbd { display: none; }
 }
@@ -108,10 +114,10 @@ button { background: none; border: 0; padding: 0; cursor: pointer; }
 .panel-side { top: 18px; right: 18px; bottom: 84px; width: 340px; max-width: calc(100vw - 36px); }
 .panel-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 10px; }
 .panel-head h2 { margin: 0; font-size: 15px; font-weight: 500; }
-.panel-body { padding: 4px 16px 16px; overflow-y: auto; flex: 1; }
+.panel-body { padding: 4px 16px 16px; overflow-y: auto; flex: 1; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
 .panel-foot { display: flex; gap: 8px; justify-content: flex-end; padding: 12px 16px; border-top: 1px solid var(--line); }
 @media (max-width: 640px) {
-  .panel-side { top: auto; left: 12px; right: 12px; bottom: 68px; width: auto; max-width: none; max-height: 62vh; border-radius: 14px; }
+  .panel-side { top: auto; left: 12px; right: 12px; bottom: calc(68px + env(safe-area-inset-bottom)); width: auto; max-width: none; max-height: 60dvh; border-radius: 14px; }
 }
 
 .iconbtn {
@@ -188,7 +194,7 @@ select.input option { background: var(--panel-solid); color: var(--text); }
 .overlay { position: absolute; inset: 0; z-index: 8; background: rgba(15,16,19,.86); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); display: flex; flex-direction: column; }
 .overlay-head { display: flex; align-items: center; justify-content: space-between; padding: 22px 28px 10px; }
 .overlay-head h2 { margin: 0; font-size: 20px; font-weight: 300; }
-.overlay-body { padding: 8px 28px 28px; overflow-y: auto; flex: 1; }
+.overlay-body { padding: 8px 28px 28px; overflow-y: auto; flex: 1; overscroll-behavior: contain; }
 .plates { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
 .plate { position: relative; border-radius: var(--radius); overflow: hidden; background: #000; aspect-ratio: 1; border: 1px solid var(--line); }
 .plate > button.open { position: absolute; inset: 0; display: block; }
@@ -222,3 +228,17 @@ select.input option { background: var(--panel-solid); color: var(--text); }
 }
 @keyframes toast-in { from { opacity: 0; transform: translate(-50%, 6px); } to { opacity: 1; transform: translate(-50%, 0); } }
 @media (max-width: 640px) { .toast { bottom: 70px; } }
+
+/* ---- explore panel ------------------------------------------------------ */
+.prose { font-size: 13.5px; line-height: 1.55; }
+.prose p { margin: 0 0 10px; }
+.prose .formula { font-variant-numeric: tabular-nums; letter-spacing: .02em; padding: 8px 10px; border-radius: 8px; background: rgba(255,255,255,.05); border: 1px solid var(--line); display: inline-block; margin: 2px 0 12px; }
+.facts { list-style: none; padding: 0; margin: 0 0 6px; display: flex; flex-direction: column; gap: 8px; }
+.facts li { padding-left: 14px; position: relative; font-size: 13px; color: var(--text); }
+.facts li::before { content: ""; position: absolute; left: 0; top: 8px; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
+.places { display: flex; flex-direction: column; gap: 4px; }
+.place { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border-radius: 8px; text-align: left; color: var(--text); }
+.place:hover { background: rgba(255,255,255,.06); }
+.place .t { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.place .t .mag { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.place .d { font-size: 12px; color: var(--muted); }
