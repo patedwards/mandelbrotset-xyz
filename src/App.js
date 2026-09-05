@@ -1,123 +1,62 @@
-import { useEffect, useRef } from "react";
-
+import { useCallback, useEffect, useRef, useState } from "react";
 import { BrowserRouter as Router } from "react-router-dom";
 
-import Alert from "@mui/material/Alert";
-import Snackbar from "@mui/material/Snackbar";
-import { ThemeProvider, useTheme } from "@mui/material/styles";
-import themeSpec from "./Theme";
-
-import AppBar from "./components/AppBar";
-import ControlAccordion from "./components/ControlAccordion";
-import Library from "./components/Library";
+import "./ui/ui.css";
 import Map from "./components/Map";
-import { styleTaskActivities } from "./components/StyleTaskActivities";
-import TaskDrawer from "./components/TaskDrawer";
-import {
-  useIsMobile,
-  useMapRef,
-  useShowAlert,
-  useShowControls,
-} from "./hooks/state";
-import { InfoPanel } from "./components/InfoPanel";
+import ExportSheet from "./ui/ExportSheet";
+import LibraryOverlay from "./ui/LibraryOverlay";
+import Readout from "./ui/Readout";
+import SaveSheet from "./ui/SaveSheet";
+import StylePanel from "./ui/StylePanel";
+import Toast from "./ui/Toast";
+import Toolbar from "./ui/Toolbar";
+import { useMapRef, useStateUrl, useToast } from "./hooks/state";
 
+/**
+ * The picture fills the window; everything else floats over it. One panel
+ * (or sheet, or overlay) is open at a time, tracked by `open`.
+ */
 function App() {
-  // get the parameters from the URL
-  const urlStateHasLoaded = true; // useUrlStateHasLoaded();
-  const isMobile = useIsMobile(); // re-rendering
-
-  // WASM is loaded on demand by the tile worker pool (see workers/tilePool.js)
-  // and, as a fallback, by the Rust/WASM tile layer on the main thread.
-
   const mapRefInit = useRef(null);
-  
-  // App state
-  const theme = useTheme();
-  const [showControls, setShowControls] = useShowControls();
-
-  // Alert state
-  const [showAlert, setShowAlert] = useShowAlert();
-
-  // Map state
   const [, setMapRef] = useMapRef();
-
-  const handleCloseControls = () => setShowControls(false);
+  const [open, setOpen] = useState(null); // "style" | "save" | "export" | "library" | null
+  const [, setToast] = useToast();
+  const url = useStateUrl();
 
   useEffect(() => {
     setMapRef(mapRefInit);
-  }, [mapRefInit, setMapRef]);
+  }, [setMapRef]);
 
-  useEffect(() => {
-    document.body.style.overflow = "hidden";
-
-    // Reset when component is unmounted
-    return () => {
-      document.body.style.overflow = "unset";
-    };
-  }, []);
+  const toggle = useCallback((id) => setOpen((cur) => (id === null || cur === id ? null : id)), []);
+  const close = useCallback(() => setOpen(null), []);
+  const copyLink = useCallback(() => {
+    const full = `${window.location.origin}${process.env.PUBLIC_URL || ""}${url}`;
+    navigator.clipboard.writeText(full).then(
+      () => setToast("Link copied"),
+      () => setToast("Couldn't copy — select the address bar instead")
+    );
+  }, [url, setToast]);
 
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: isMobile ? "column" : "row",
-        alignItems: "center",
-        height: "100vh",
-        width: "100vw",
-        overflow: "hidden", // to avoid scrolling of the main container
-      }}
-    >
-      <AppBar />
-      {urlStateHasLoaded ? (
-        <div>
-          <Snackbar
-            open={showAlert}
-            autoHideDuration={3000}
-            onClose={() => setShowAlert(false)}
-            anchorOrigin={{
-              vertical: "top",
-              horizontal: isMobile ? "center" : "center",
-            }}
-            style={{
-              top: theme.structure.appBarHeight, // Assuming the appBarHeight is the exact height of the AppBar
-            }}
-          >
-            <Alert
-              severity="success"
-              variant="filled"
-              onClose={() => setShowAlert(false)}
-            >
-              Image saved to library!
-            </Alert>
-          </Snackbar>
-          <TaskDrawer />
-          {showControls && (
-            <ControlAccordion
-              {...{
-                handleCloseControls,
-                activities: styleTaskActivities,
-              }}
-            />
-          )}
-          <div style={{ flex: 1, overflow: "hidden" }}>
-            <Map ref={mapRefInit} />
-          </div>
-          <Library />
-          <InfoPanel />
-        </div>
-      ) : null}
+    <div className="shell">
+      <div className="shell-canvas">
+        <Map ref={mapRefInit} />
+      </div>
+      <Readout />
+      <Toolbar open={open} onToggle={toggle} onCopyLink={copyLink} />
+      {open === "style" && <StylePanel onClose={close} />}
+      {open === "save" && <SaveSheet onClose={close} />}
+      {open === "export" && <ExportSheet onClose={close} />}
+      {open === "library" && <LibraryOverlay onClose={close} />}
+      <Toast />
     </div>
   );
 }
 
-const RootApp = () => {
+export default function RootApp() {
   return (
-    <ThemeProvider theme={themeSpec}>
-      <Router basename={process.env.PUBLIC_URL || "/"}>
-        <App />
-      </Router>
-    </ThemeProvider>
+    <Router basename={process.env.PUBLIC_URL || "/"}>
+      <App />
+    </Router>
   );
-};
-
-export default RootApp;
+}

@@ -1,9 +1,8 @@
 // Imports
-import { useTheme } from "@mui/material/styles";
-import useMediaQuery from "@mui/material/useMediaQuery";
 import { atom, useAtom } from "jotai";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { useIsSmallScreen } from "../ui/useMedia";
 import { decodeColors, encodeColors } from "../utilities/colors";
 import { createTileLayer as createTileLayerJs } from "../layers/TileLayerPureJS";
 import { createTileLayer as createTileLayerGl } from "../layers/TileLayerGL";
@@ -53,6 +52,7 @@ const PIXEL_RATIO =
 // Atoms: Global settings
 const getStateFromUrlAtom = atom(true);
 const showAlertAtom = atom(false);
+const toastAtom = atom(null); // string to show briefly, or null
 const showInfoAtom = atom(false);
 const glTimeAtom = atom(true);
 const autoScaleMaxIterationsAtom = atom(true);
@@ -76,17 +76,14 @@ const gradientFunctionAtom = atom("standard");
 
 // Basic hooks
 export const useShowAlert = () => useAtom(showAlertAtom);
+export const useToast = () => useAtom(toastAtom);
 export const useAutoScaleMaxIterations = () =>
   useAtom(autoScaleMaxIterationsAtom);
 export const useShowInfo = () => useAtom(showInfoAtom);
 export const useLibraryOpen = () => useAtom(libraryOpenAtom);
 export const useShowControls = () => useAtom(showControlsAtom);
 export const useGetStateFromUrl = () => useAtom(getStateFromUrlAtom);
-export const useIsMobile = () => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  return isMobile;
-};
+export const useIsMobile = () => useIsSmallScreen();
 export const useMapRef = () => useAtom(mapRefAtom);
 export const useGL = () => useAtom(glTimeAtom);
 

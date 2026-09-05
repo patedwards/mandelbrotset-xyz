@@ -33,3 +33,4 @@ firebase.json
  
 # all the target/wasm32-unknown-unknown files
 target
+/wasm-lib/pkg
