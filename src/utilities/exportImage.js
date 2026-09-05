@@ -156,13 +156,17 @@ export async function renderExport({
             }
           : { ...crispOpts, west, south, east, north };
       const job = pool
-        .render({
-          ...jobParams,
-          tileSize: CHUNK,
-          maxIterations,
-          gradientFunction,
-          colors: colorBytes,
-        })
+        .render(
+          {
+            ...jobParams,
+            tileSize: CHUNK,
+            maxIterations,
+            gradientFunction,
+            colors: colorBytes,
+          },
+          // Behind live tiles; cancel drops queued chunks immediately.
+          { priority: 2, signal }
+        )
         .then(({ rgba, width, height }) => {
           if (signal && signal.aborted) return;
           const img = new ImageData(
@@ -173,6 +177,11 @@ export async function renderExport({
           ctx.putImageData(img, px, py);
           done += 1;
           if (onProgress) onProgress(done, total);
+        })
+        .catch((err) => {
+          // Aborted chunks reject; the cancel path below reports it once.
+          if (signal && signal.aborted) return;
+          throw err;
         });
       jobs.push(job);
     }

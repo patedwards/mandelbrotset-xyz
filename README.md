@@ -55,7 +55,7 @@ zoom-to-infinity: this could be large if you do it with rust, but you can always
 
 Seamless deep zoom — three-phase plan (Patch brain: long/projects/mandelbrot.md):
 
-0. Pipeline: per-tile iteration budget, priority + abort in the worker pool, preview layer, retire GL for interaction (Patch task #903).
+0. **Done (2026-09-05, PR #5):** per-tile iteration budget (autoscale no longer rebuilds the layer), priority + abort + readiness in the worker pool, 64-px preview layer under the full-res one, `maxRequests`/cache tuning; GL retired for interaction by the `CRISP` switch.
 1. **Done (2026-09-05, this branch):** perturbation + rebasing + BLA in `wasm-lib` (`reference.rs`, `perturb.rs`) and the crisp renderer (`crisp.rs`: smooth colouring, adaptive supersampling, distance-estimate filament shading). Verified against a fixed-point oracle at 2^-120 pixel spacing.
 2. Floating-origin viewer: deck.gl's f64 view state can't hold the centre past ~z44 — keep a bigfloat anchor and render tiles as offsets from it (the Rust side already takes deltas).
 3. GPU comeback: f32 shader over *rescaled* deltas against the same reference; only once it matches the WASM path pixel-for-pixel.
