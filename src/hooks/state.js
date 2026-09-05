@@ -53,6 +53,7 @@ const PIXEL_RATIO =
 const getStateFromUrlAtom = atom(true);
 const showAlertAtom = atom(false);
 const toastAtom = atom(null); // string to show briefly, or null
+const flyToAtom = atom(null); // { x, y, z, at } — Map flies there when it changes
 const showInfoAtom = atom(false);
 const glTimeAtom = atom(true);
 const autoScaleMaxIterationsAtom = atom(true);
@@ -77,6 +78,7 @@ const gradientFunctionAtom = atom("standard");
 // Basic hooks
 export const useShowAlert = () => useAtom(showAlertAtom);
 export const useToast = () => useAtom(toastAtom);
+export const useFlyTo = () => useAtom(flyToAtom);
 export const useAutoScaleMaxIterations = () =>
   useAtom(autoScaleMaxIterationsAtom);
 export const useShowInfo = () => useAtom(showInfoAtom);

@@ -37,3 +37,6 @@ export const Download = (p) => (
 export const Check = (p) => (
   <I {...p}><path d="M5 12l5 5L20 7"/></I>
 );
+export const Compass = (p) => (
+  <I {...p}><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5 13.8 13.8 8.5 15.5l1.7-5.3z"/></I>
+);

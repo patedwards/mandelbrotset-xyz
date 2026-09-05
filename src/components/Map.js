@@ -4,18 +4,37 @@ import {
   useImperativeHandle,
   forwardRef,
   useEffect,
+  useMemo,
   useState,
   memo,
 } from "react";
 import DeckGL from "@deck.gl/react";
+import { FlyToInterpolator } from "@deck.gl/core";
 
 import { useStore } from "../hooks/store";
-import { useTileLayer, useInitialViewState, useX, useY, useZ } from "../hooks/state";
+import { useTileLayer, useInitialViewState, useFlyTo, useX, useY, useZ } from "../hooks/state";
 import { setViewCenter } from "../layers/TileLayerCrisp";
 
 const Map = forwardRef((_, ref) => {
   const [initialViewState] = useInitialViewState();
+  const [flyTarget] = useFlyTo();
   const deckViewStateRef = useRef(null);
+  // A fly-to request becomes a new initialViewState with a transition; deck
+  // resets to it when the object identity changes.
+  const viewStateToApply = useMemo(
+    () =>
+      flyTarget
+        ? {
+            ...initialViewState,
+            longitude: flyTarget.x,
+            latitude: flyTarget.y,
+            zoom: flyTarget.z,
+            transitionDuration: "auto",
+            transitionInterpolator: new FlyToInterpolator({ speed: 1.2, curve: 1.4 }),
+          }
+        : initialViewState,
+    [initialViewState, flyTarget]
+  );
   const layer = useTileLayer();
   const { addLibraryItem } = useStore();  
   const [, setX] = useX();
@@ -133,7 +152,7 @@ const Map = forwardRef((_, ref) => {
       ref={deckRef}
       onAfterRender={onAfterRender}
       controller={true}
-      initialViewState={initialViewState}
+      initialViewState={viewStateToApply}
       onViewStateChange={({ viewState }) => {
         deckViewStateRef.current = viewState;
         handleViewStateChange({ viewState });

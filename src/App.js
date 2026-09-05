@@ -3,6 +3,7 @@ import { BrowserRouter as Router } from "react-router-dom";
 
 import "./ui/ui.css";
 import Map from "./components/Map";
+import ExplorePanel from "./ui/ExplorePanel";
 import ExportSheet from "./ui/ExportSheet";
 import LibraryOverlay from "./ui/LibraryOverlay";
 import Readout from "./ui/Readout";
@@ -19,7 +20,18 @@ import { useMapRef, useStateUrl, useToast } from "./hooks/state";
 function App() {
   const mapRefInit = useRef(null);
   const [, setMapRef] = useMapRef();
-  const [open, setOpen] = useState(null); // "style" | "save" | "export" | "library" | null
+  // First visit on a wide screen opens Explore so the site explains itself.
+  const [open, setOpen] = useState(() => {
+    try {
+      if (window.innerWidth > 640 && !localStorage.getItem("seenExplore")) {
+        localStorage.setItem("seenExplore", "1");
+        return "explore";
+      }
+    } catch (e) {
+      /* private mode etc. */
+    }
+    return null;
+  }); // "explore" | "style" | "save" | "export" | "library" | null
   const [, setToast] = useToast();
   const url = useStateUrl();
 
@@ -44,6 +56,7 @@ function App() {
       </div>
       <Readout />
       <Toolbar open={open} onToggle={toggle} onCopyLink={copyLink} />
+      {open === "explore" && <ExplorePanel onClose={close} />}
       {open === "style" && <StylePanel onClose={close} />}
       {open === "save" && <SaveSheet onClose={close} />}
       {open === "export" && <ExportSheet onClose={close} />}

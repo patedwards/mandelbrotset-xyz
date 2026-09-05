@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Grid, Link, Palette, Pin, Print } from "./Icons";
+import { Compass, Grid, Link, Palette, Pin, Print } from "./Icons";
 
 /**
  * The five things you can do, in one pill. Each has a single-key shortcut;
@@ -7,6 +7,7 @@ import { Grid, Link, Palette, Pin, Print } from "./Icons";
  */
 export default function Toolbar({ open, onToggle, onCopyLink }) {
   const tools = [
+    { id: "explore", label: "Explore", key: "i", icon: Compass },
     { id: "style", label: "Style", key: "s", icon: Palette },
     { id: "save", label: "Save location", key: "l", icon: Pin },
     { id: "export", label: "Export", key: "e", icon: Print },
