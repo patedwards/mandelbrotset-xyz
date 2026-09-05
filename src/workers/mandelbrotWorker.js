@@ -23,7 +23,16 @@ import init, {
   Reference,
 } from "wasm-lib";
 
-const ready = init().then(() => true);
+const ready = init().then(
+  () => {
+    self.postMessage({ ready: true });
+    return true;
+  },
+  (err) => {
+    self.postMessage({ ready: false, error: err && err.message ? err.message : String(err) });
+    throw err;
+  }
+);
 
 // Small LRU of reference orbits, keyed by the view that produced them.
 const REF_CACHE_SIZE = 3;

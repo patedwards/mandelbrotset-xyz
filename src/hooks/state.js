@@ -166,6 +166,7 @@ export const useInitialViewState = () => {
 
 export const useTileLayer = () => {
   const [maxIterations] = useMaxIterations();
+  const [autoScaleIterations] = useAutoScaleMaxIterations();
   const [colors] = useColors();
   const [gradientFunction] = useGradientFunction();
   const [z] = useZ();
@@ -174,16 +175,24 @@ export const useTileLayer = () => {
   // event — `engine` is a stable string that flips only at the threshold.
   const engine = pickEngine(gradientFunction, z);
 
+  // With autoscale on, the crisp engine derives iterations per tile, so the
+  // changing autoscaled value must not rebuild the layer (that rebuild was the
+  // "everything flashes blank when zooming" bug). Legacy engines still take
+  // the global value.
+  const perTile = engine === "crisp" && autoScaleIterations;
+  const layerIterations = perTile ? 0 : maxIterations;
+
   return useMemo(() => {
     const createTileLayer = ENGINE_FACTORIES[engine] || createTileLayerRust;
     return createTileLayer({
-      maxIterations,
+      maxIterations: layerIterations,
+      autoScaleIterations: perTile,
       colors,
       gradientFunction,
       maxZoom: MAX_ZOOM,
       pixelRatio: PIXEL_RATIO,
     });
-  }, [maxIterations, colors, gradientFunction, engine]);
+  }, [layerIterations, perTile, colors, gradientFunction, engine]);
 };
 
 export const useStateUrl = () => {
