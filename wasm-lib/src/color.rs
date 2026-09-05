@@ -158,65 +158,81 @@ pub fn pixel_color(
     max_iterations: u32,
     colors: &Colors,
 ) -> [u8; 3] {
-    let inside = iterations < 0;
+    pack3(pixel_color_f(g, zx, zy, iterations as f64, max_iterations, colors))
+}
+
+/// Same mapping with a *fractional* iteration count (smooth colouring) and
+/// un-packed channels so callers can average samples before quantising.
+/// `iterations < 0` still means "inside".
+#[inline]
+pub fn pixel_color_f(
+    g: GradientFn,
+    zx: f64,
+    zy: f64,
+    iterations: f64,
+    max_iterations: u32,
+    colors: &Colors,
+) -> [f64; 3] {
+    let inside = iterations < 0.0;
     let max = max_iterations as f64;
-    let it = iterations as f64;
+    let it = iterations;
+    let f3 = |c: [u8; 3]| [c[0] as f64, c[1] as f64, c[2] as f64];
 
     match g {
         GradientFn::Standard => {
             if inside {
-                return colors.black.arr();
+                return f3(colors.black.arr());
             }
-            pack3(get_color(it / max, colors.start, colors.middle, colors.end, 0.0, 1.0))
+            get_color(it / max, colors.start, colors.middle, colors.end, 0.0, 1.0)
         }
         GradientFn::Grayscale => {
             if inside {
-                return [0, 0, 0];
+                return [0.0, 0.0, 0.0];
             }
-            let v = pack((it / max).clamp(0.0, 1.0) * 255.0);
+            let v = (it / max).clamp(0.0, 1.0) * 255.0;
             [v, v, v]
         }
         GradientFn::NiceGradient => {
             if inside {
-                return colors.black.arr();
+                return f3(colors.black.arr());
             }
             let value = ((it / max) * PI - PI / 2.0).sin();
             let value = (value + 1.0) / 2.0;
-            pack3(get_color(value, colors.start, colors.middle, colors.end, 0.0, 1.0))
+            get_color(value, colors.start, colors.middle, colors.end, 0.0, 1.0)
         }
         GradientFn::Log => {
             if inside {
-                return colors.black.arr();
+                return f3(colors.black.arr());
             }
             let value = (it + 1.0).ln() / (max + 1.0).ln();
-            pack3(get_color(value, colors.start, colors.middle, colors.end, 0.0, 1.0))
+            get_color(value, colors.start, colors.middle, colors.end, 0.0, 1.0)
         }
         GradientFn::PillarMaker => {
             // No interior special-case in the original; for inside points
             // zx = zy = -1.0 and it = -1.0, exactly as the JS produced.
             let r2 = zx * zx + zy * zy;
             let value = 1.0 - (it / max - r2.log2().log2());
-            pack3(get_color(value, colors.start, colors.middle, colors.end, 1.0, 3.0))
+            get_color(value, colors.start, colors.middle, colors.end, 1.0, 3.0)
         }
         GradientFn::Sqrt => {
             if inside {
-                return colors.black.arr();
+                return f3(colors.black.arr());
             }
             let value = (it / max).sqrt();
-            pack3(get_color(value, colors.start, colors.middle, colors.end, 0.0, 1.0))
+            get_color(value, colors.start, colors.middle, colors.end, 0.0, 1.0)
         }
         GradientFn::Exponential => {
             if inside {
-                return colors.black.arr();
+                return f3(colors.black.arr());
             }
             let value = (it / max).powi(2);
-            pack3(get_color(value, colors.start, colors.middle, colors.end, 0.0, 1.0))
+            get_color(value, colors.start, colors.middle, colors.end, 0.0, 1.0)
         }
         GradientFn::RandomPalette => {
             if inside {
-                return [0, 0, 0];
+                return [0.0, 0.0, 0.0];
             }
-            VGA_PALETTE[(iterations as usize) % VGA_PALETTE.len()]
+            f3(VGA_PALETTE[(iterations.max(0.0) as usize) % VGA_PALETTE.len()])
         }
     }
 }

@@ -29,7 +29,7 @@ const INSIDE: Escape = Escape {
 /// it can never escape regardless of the bailout radius. Pure speed-up — it
 /// returns the same `INSIDE` the full iteration would.
 #[inline]
-fn in_main_bulbs(x: f64, y: f64) -> bool {
+pub fn in_main_bulbs(x: f64, y: f64) -> bool {
     // Period-2 bulb, a disc of radius 1/4 centred at (-1, 0).
     let xp1 = x + 1.0;
     if xp1 * xp1 + y * y <= 0.0625 {

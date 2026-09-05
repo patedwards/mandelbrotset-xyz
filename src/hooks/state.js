@@ -8,6 +8,12 @@ import { decodeColors, encodeColors } from "../utilities/colors";
 import { createTileLayer as createTileLayerJs } from "../layers/TileLayerPureJS";
 import { createTileLayer as createTileLayerGl } from "../layers/TileLayerGL";
 import { createTileLayer as createTileLayerRust } from "../layers/TileLayerRustWASM";
+import { createTileLayer as createTileLayerCrisp } from "../layers/TileLayerCrisp";
+
+// The crisp renderer (smooth colouring + adaptive supersampling + DE filament
+// shading, perturbation for deep tiles) replaces both the GL and plain-WASM
+// paths for the live view. Set false to fall back to the legacy engines.
+const CRISP = true;
 
 // Deepest zoom the deck.gl viewer is allowed to reach. The WebGL shader's
 // 32-bit floats lose accuracy past ~zoom 22, so beyond GL_ACCURATE_MAX_ZOOM we
@@ -25,15 +31,24 @@ const WASM_AVAILABLE = typeof WebAssembly !== "undefined";
 // other gradients at any zoom, and `standard` once GL gets imprecise), and the
 // pure-JS renderer only as a last resort if WASM is unavailable.
 const pickEngine = (gradientFunction, zoom) => {
+  if (CRISP && WASM_AVAILABLE) return "crisp";
   if (gradientFunction === "standard" && zoom < GL_ACCURATE_MAX_ZOOM) return "gl";
   return WASM_AVAILABLE ? "wasm" : "js";
 };
 
 const ENGINE_FACTORIES = {
+  crisp: createTileLayerCrisp,
   gl: createTileLayerGl,
   wasm: createTileLayerRust,
   js: createTileLayerJs,
 };
+
+// Retina displays get 512-px tiles for 256-px tile bounds; capped at 2 so a
+// 3× phone doesn't pay 9× the samples.
+const PIXEL_RATIO =
+  typeof window !== "undefined"
+    ? Math.min(2, Math.max(1, Math.round(window.devicePixelRatio || 1)))
+    : 1;
 
 // Atoms: Global settings
 const getStateFromUrlAtom = atom(true);
@@ -166,6 +181,7 @@ export const useTileLayer = () => {
       colors,
       gradientFunction,
       maxZoom: MAX_ZOOM,
+      pixelRatio: PIXEL_RATIO,
     });
   }, [maxIterations, colors, gradientFunction, engine]);
 };
