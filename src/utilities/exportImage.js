@@ -118,7 +118,7 @@ export async function renderExport({
   const cols = Math.ceil(widthPx / CHUNK);
   const rows = Math.ceil(heightPx / CHUNK);
   const total = cols * rows;
-  let done = 0;
+  const counter = { done: 0 };
 
   const jobs = [];
   for (let r = 0; r < rows; r++) {
@@ -175,8 +175,8 @@ export async function renderExport({
             height
           );
           ctx.putImageData(img, px, py);
-          done += 1;
-          if (onProgress) onProgress(done, total);
+          counter.done += 1;
+          if (onProgress) onProgress(counter.done, total);
         })
         .catch((err) => {
           // Aborted chunks reject; the cancel path below reports it once.
